@@ -1,4 +1,3 @@
-#include <string.h>
 #include <stdio.h>
 #include "game.h"
 
@@ -21,8 +20,8 @@ move_piece(struct GAME_INSTANCE *instance, int from_field, int up_down, int left
     int piece_row = from_field / GAME_BOARD_WIDTH;
     int piece_col = from_field % GAME_BOARD_WIDTH;
     enum GAME_PIECE_COLOR piece_color = _get_piece_color(instance, piece_row, piece_col);
-    // Check if the move is correct
     enum GAME_ERROR move_error = ERROR_NO_ERROR;
+    // Check if the move is correct
     if (from_field < 0 || from_field > GAME_BOARD_WIDTH * GAME_BOARD_HEIGHT)
         move_error = ERROR_CANT_MOVE_PIECE;
     // If the piece belongs to the other player
@@ -38,11 +37,14 @@ move_piece(struct GAME_INSTANCE *instance, int from_field, int up_down, int left
     int dest_col = piece_col;
     int through_row = piece_row;
     int through_col = piece_col;
+    // Check if there is any piece on this field
+    if (instance->board[piece_row][piece_col] == PIECE_NO_PIECE)
+        move_error = ERROR_CANT_MOVE_PIECE;
     // Check if the piece is moving backward and if it is check if it's not a man
     if (up_down > 0 && instance->board[piece_row][piece_col] == PIECE_LIGHT_MAN)
         move_error = ERROR_NOT_KING;
     else if (up_down < 0 && instance->board[piece_row][piece_col] == PIECE_DARK_MAN)
-        move_error = ERROR_NO_ERROR;
+        move_error = ERROR_NOT_KING;
     switch (num_of_fields) {
         case 1:
             // Calculate the destination field
