@@ -22,7 +22,7 @@
  * @brief Available types of pieces that can be placed on the board.
  */
 enum GAME_PIECE_TYPE {
-    LIGHT_KING = -2, LIGHT_MAN, NO_PIECE, DARK_MAN, DARK_KING
+    PIECE_LIGHT_KING = -2, PIECE_LIGHT_MAN, PIECE_NO_PIECE, PIECE_DARK_MAN, PIECE_DARK_KING
 };
 
 /**
