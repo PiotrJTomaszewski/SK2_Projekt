@@ -5,3 +5,7 @@ GamePiece::GamePiece(const QPixmap &pixmap, QGraphicsItem *parent) : QGraphicsPi
     this->setZValue(10);
 }
 
+QPointF GamePiece::getPos() {
+    return this->pos();
+}
+

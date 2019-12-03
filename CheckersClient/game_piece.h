@@ -8,6 +8,7 @@
 class GamePiece : public QGraphicsPixmapItem {
 public:
     GamePiece(const QPixmap &pixmap, QGraphicsItem *parent = nullptr);
+    QPointF getPos();
 //    void setPos(qreal x, qreal y);
 private:
 //    int width;
