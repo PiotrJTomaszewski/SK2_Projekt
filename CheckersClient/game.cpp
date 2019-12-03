@@ -1,7 +1,6 @@
 #include "game.h"
 
-Game::Game(QWidget *parent) : QGraphicsView(parent)
-{
+Game::Game(QWidget *parent) : QGraphicsView(parent) {
     scene = new QGraphicsScene(this);
     this->setScene(scene);
     const QPixmap board_pixmap(":/textures/board.png");
@@ -26,8 +25,7 @@ Game::Game(QWidget *parent) : QGraphicsView(parent)
     this->scene->setSceneRect(0, 0, width, height);
 }
 
-Game::~Game()
-{
+Game::~Game() {
     delete this->board;
     for (int i=0; i<NUMBER_OF_PIECES; ++i) {
         delete this->light_pieces[i];
@@ -77,11 +75,13 @@ void Game::movePickedUpPiece(int mouse_x, int mouse_y)
     }
 }
 
-void Game::dropPickedUpPiece()
-{
-    if (picked_up_piece != nullptr)
-    {
+void Game::dropPickedUpPiece() {
+    if (picked_up_piece != nullptr) {
         this->picked_up_piece->setZValue(10);
         this->picked_up_piece = nullptr;
     }
+}
+
+void Game::placePiecesAtStart() {
+
 }

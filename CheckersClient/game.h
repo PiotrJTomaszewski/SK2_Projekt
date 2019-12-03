@@ -11,8 +11,7 @@
 
 #define NUMBER_OF_PIECES 12
 
-class Game : public QGraphicsView
-{
+class Game : public QGraphicsView {
     Q_OBJECT
 public:
     explicit Game(QWidget *parent = nullptr);

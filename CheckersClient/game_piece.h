@@ -5,8 +5,7 @@
 #include <QDebug>
 #include <QGraphicsSceneDragDropEvent>
 
-class GamePiece : public QGraphicsPixmapItem
-{
+class GamePiece : public QGraphicsPixmapItem {
 public:
     GamePiece(const QPixmap &pixmap, QGraphicsItem *parent = nullptr);
 //    void setPos(qreal x, qreal y);
