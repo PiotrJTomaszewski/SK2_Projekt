@@ -8,17 +8,14 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     const QPixmap light_man_pixmap(":/textures/light_man.png");
     const QPixmap dark_king_pixmap(":/textures/dark_king.png");
     const QPixmap light_king_pixmap(":/textures/light_king.png");
-    // TODO: Add pixmaps for kings and pass them as array
     this->board = new QGraphicsPixmapItem(board_pixmap);
     this->scene->addItem(board);
     for (int i=0; i< ONE_COLOR_PIECES; ++i) {
-        this->light_pieces[i] = new GamePiece(light_man_pixmap);
+        this->light_pieces[i] = new GamePiece(light_man_pixmap, light_king_pixmap);
         this->scene->addItem(light_pieces[i]);
-        this->dark_pieces[i]  = new GamePiece(dark_man_pixmap);
+        this->dark_pieces[i]  = new GamePiece(dark_man_pixmap, dark_king_pixmap);
         this->scene->addItem(dark_pieces[i]);
     }
-    light_pieces[11]->setPixmap(light_king_pixmap);
-    dark_pieces[11]->setPixmap(dark_king_pixmap);
     placePiecesAtStart();
     // Set scene bounding rectangle so it won't be resized automatically
     int width = board_pixmap.width();

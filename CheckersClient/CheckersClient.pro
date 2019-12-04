@@ -33,6 +33,7 @@ SOURCES += \
 HEADERS += \
         game.h \
         game_piece.h \
+        globals.h \
         mainwindow.h
 
 FORMS += \
