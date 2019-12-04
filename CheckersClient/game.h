@@ -32,13 +32,14 @@ private:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void pickUpPiece(int mouse_x, int mouse_y);
     void movePickedUpPiece(int mouse_x, int mouse_y);
-    void dropPickedUpPiece();
+    void dropPickedUpPiece(int mouse_x, int mouse_y);
     GamePiece *picked_up_piece = nullptr;
     // Position of the game piece at the moment of picking it up
     QPointF picked_up_piece_position;
     void placePiecesAtStart();
     QPointF getFieldPosition(int field);
     int getFieldNumber(int x_position , int y_position);
+    int getFieldNumber(QPointF position);
 signals:
 
 public slots:

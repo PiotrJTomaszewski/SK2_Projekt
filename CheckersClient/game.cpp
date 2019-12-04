@@ -48,8 +48,7 @@ void Game::mouseMoveEvent(QMouseEvent *event) {
 
 void Game::mouseReleaseEvent(QMouseEvent *event) {
 //    qInfo() << event->type();
-    dropPickedUpPiece();
-    getFieldNumber(event->x(), event->y());
+    dropPickedUpPiece(event->x(), event->y());
 }
 
 void Game::pickUpPiece(int mouse_x, int mouse_y) {
@@ -64,15 +63,21 @@ void Game::pickUpPiece(int mouse_x, int mouse_y) {
 
 void Game::movePickedUpPiece(int mouse_x, int mouse_y) {
     if (this->picked_up_piece != nullptr) {
-        // TODO: Calculate offset
-        qreal x_mouse_offset = 50;
-        qreal y_mouse_offset = 30;
+         qreal x_mouse_offset = 53;
+         qreal y_mouse_offset = 53;
         this->picked_up_piece->setPos(mouse_x-x_mouse_offset, mouse_y-y_mouse_offset);
     }
 }
 
-void Game::dropPickedUpPiece() {
+void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
     if (picked_up_piece != nullptr) {
+        qInfo("%d\n", getFieldNumber(mouse_x, mouse_y));
+        if (getFieldNumber(mouse_x, mouse_y) == -1) {
+            picked_up_piece->setPos(picked_up_piece_position);
+        }
+        else {
+            picked_up_piece->setPos(getFieldPosition(getFieldNumber(mouse_x, mouse_y)));
+        }
         this->picked_up_piece->setZValue(10);
         this->picked_up_piece = nullptr;
     }
@@ -125,4 +130,8 @@ int Game::getFieldNumber(int x_position , int y_position) {
     }
     int field_number = row * FIELDS_IN_ROW + col;
     return field_number;
+}
+
+int Game::getFieldNumber(QPointF position) {
+    return getFieldNumber(static_cast<int>(position.x()), static_cast<int>(position.y()));
 }

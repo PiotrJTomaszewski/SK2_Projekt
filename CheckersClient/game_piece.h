@@ -11,8 +11,6 @@ public:
     QPointF getPos();
 //    void setPos(qreal x, qreal y);
 private:
-//    int width;
-//    int height;
 };
 
 #endif // GAME_PIECE_H

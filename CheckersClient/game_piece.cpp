@@ -8,4 +8,3 @@ GamePiece::GamePiece(const QPixmap &pixmap, QGraphicsItem *parent) : QGraphicsPi
 QPointF GamePiece::getPos() {
     return this->pos();
 }
-
