@@ -8,6 +8,7 @@
 #include <QtEvents>
 #include <QGraphicsPixmapItem>
 #include "game_piece.h"
+#include "globals.h"
 
 #define ONE_COLOR_PIECES 12
 #define FIELDS 32
@@ -23,6 +24,7 @@ public:
     explicit Game(QWidget *parent = nullptr);
     ~Game() override;
 private:
+    COLOR player_color;
     QGraphicsScene *scene;
     QGraphicsPixmapItem *board;
     GamePiece *light_pieces[ONE_COLOR_PIECES];

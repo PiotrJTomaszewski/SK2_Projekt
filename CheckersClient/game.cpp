@@ -16,6 +16,7 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
         this->dark_pieces[i]  = new GamePiece(dark_man_pixmap, dark_king_pixmap);
         this->scene->addItem(dark_pieces[i]);
     }
+    this->player_color = LIGHT; // TODO: Get that from server
     placePiecesAtStart();
     // Set scene bounding rectangle so it won't be resized automatically
     int width = board_pixmap.width();
@@ -93,6 +94,8 @@ void Game::placePiecesAtStart() {
 }
 
 QPointF Game::getFieldPosition(int field) {
+    if (this->player_color == DARK)  // When the player is dark the board is turned upside down
+        field = FIELDS - field - 1;
     int piece_row = field / FIELDS_IN_ROW;
     int piece_col = field % FIELDS_IN_ROW;
     int x_distance = 2*FIELD_SIZE; // There is unused white field between fields in rows
@@ -108,10 +111,10 @@ QPointF Game::getFieldPosition(int field) {
 
 int Game::getFieldNumber(int x_position , int y_position) {
     // TODO: Change that offset
-    y_position -= 2*Y_OFFSET;
-    x_position -= 2*X_OFFSET;
-    int row = y_position/FIELD_SIZE;
-    int col = x_position/FIELD_SIZE;
+    y_position -= 2 * Y_OFFSET;
+    x_position -= 2 * X_OFFSET;
+    int row = y_position / FIELD_SIZE;
+    int col = x_position / FIELD_SIZE;
     if (row % 2 == 0) {  // Even rows start with a white field
         col -= 1;
     }
@@ -126,6 +129,8 @@ int Game::getFieldNumber(int x_position , int y_position) {
         return -1;
     }
     int field_number = row * FIELDS_IN_ROW + col;
+    if (this->player_color == DARK)  // When the player is dark the board is turned upside down
+        field_number = FIELDS - field_number - 1;
     return field_number;
 }
 
