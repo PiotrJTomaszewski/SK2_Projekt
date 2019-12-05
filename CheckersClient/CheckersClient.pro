@@ -25,18 +25,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        connectiondialog.cpp \
         game.cpp \
         game_piece.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        serverconnection.cpp
 
 HEADERS += \
+        connectiondialog.h \
         game.h \
         game_piece.h \
         globals.h \
-        mainwindow.h
+        mainwindow.h \
+        serverconnection.h
 
 FORMS += \
+        connectiondialog.ui \
         mainwindow.ui
 
 # Default rules for deployment.

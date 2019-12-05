@@ -13,6 +13,7 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void joinRoom();
 
 private:
     Ui::MainWindow *ui;
