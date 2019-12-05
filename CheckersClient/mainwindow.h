@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "serverconnection.h"
+#include "mockserver.h"
 
 namespace Ui {
 class MainWindow;
@@ -13,10 +15,11 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void joinRoom();
+    void connectAndJoinRoom();
 
 private:
     Ui::MainWindow *ui;
+    ServerConnection *server_connection;
 };
 
 #endif // MAINWINDOW_H
