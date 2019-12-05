@@ -11,9 +11,9 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     this->board = new QGraphicsPixmapItem(board_pixmap);
     this->scene->addItem(board);
     for (int i=0; i< ONE_COLOR_PIECES; ++i) {
-        this->light_pieces[i] = new GamePiece(light_man_pixmap, light_king_pixmap);
+        this->light_pieces[i] = new GamePiece(light_man_pixmap, light_king_pixmap, LIGHT);
         this->scene->addItem(light_pieces[i]);
-        this->dark_pieces[i]  = new GamePiece(dark_man_pixmap, dark_king_pixmap);
+        this->dark_pieces[i]  = new GamePiece(dark_man_pixmap, dark_king_pixmap, DARK);
         this->scene->addItem(dark_pieces[i]);
     }
     this->player_color = LIGHT; // TODO: Get that from server
@@ -22,6 +22,17 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     int width = board_pixmap.width();
     int height = board_pixmap.height();
     this->scene->setSceneRect(0, 0, width, height);
+    // TODO: Move somewhere else
+    for (int i=0; i < ONE_COLOR_PIECES; ++i) {
+        if (player_color == LIGHT) {
+            this->light_pieces[i]->setMoveable(true);
+            this->dark_pieces[i]->setMoveable(false);
+        }
+        else {
+            this->light_pieces[i]->setMoveable(false);
+            this->dark_pieces[i]->setMoveable(true);
+        }
+    }
 }
 
 Game::~Game() {
@@ -82,10 +93,6 @@ void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
 }
 
 void Game::placePiecesAtStart() {
-    for (int i=0; i< ONE_COLOR_PIECES; ++i) {
-        this->dark_pieces[i]->setPos(600, 600);
-        this->light_pieces[i]->setPos(600, 600);
-    }
     int light_pieces_start = FIELDS - ONE_COLOR_PIECES;
     for (int i=0; i< ONE_COLOR_PIECES; ++i) {
         this->dark_pieces[i]->setPos(getFieldPosition(i));
