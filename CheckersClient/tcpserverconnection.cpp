@@ -8,15 +8,15 @@ TcpServerConnection::TcpServerConnection()
 
 TcpServerConnection::~TcpServerConnection() {}
 
-bool TcpServerConnection::connect(QString address, int port) {
-    this->address = address;
-    this->port = port;
-    this->connection_status = CONNECTED;
-    return true;
+ServerConnection::CONNECTION_STATUS TcpServerConnection::connect(QString address, int port) {
+    return CONNECTED;
 }
 
-QStringList TcpServerConnection::getAvailableRooms() {
-    return QStringList();
+std::vector<Room> *TcpServerConnection::getAvailableRooms() {
+}
+
+ServerConnection::CONNECTION_STATUS TcpServerConnection::joinRoom(int room_id) {
+    return this->connection_status;
 }
 
 ServerConnection::CONNECTION_STATUS TcpServerConnection::getConnectionStatus() {

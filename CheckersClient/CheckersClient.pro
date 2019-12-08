@@ -26,26 +26,31 @@ CONFIG += c++11
 
 SOURCES += \
         connectiondialog.cpp \
+        createroomdialog.cpp \
         game.cpp \
         game_piece.cpp \
         main.cpp \
         mainwindow.cpp \
         mockserver.cpp \
+        room.cpp \
         serverconnection.cpp \
         tcpserverconnection.cpp
 
 HEADERS += \
         connectiondialog.h \
+        createroomdialog.h \
         game.h \
         game_piece.h \
         globals.h \
         mainwindow.h \
         mockserver.h \
+        room.h \
         serverconnection.h \
         tcpserverconnection.h
 
 FORMS += \
         connectiondialog.ui \
+        createroomdialog.ui \
         mainwindow.ui
 
 # Default rules for deployment.

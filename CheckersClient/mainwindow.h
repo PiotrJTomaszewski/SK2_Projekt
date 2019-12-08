@@ -16,6 +16,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void connectAndJoinRoom();
+    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
 
 private:
     Ui::MainWindow *ui;
