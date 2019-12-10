@@ -31,10 +31,9 @@ SOURCES += \
         game_piece.cpp \
         main.cpp \
         mainwindow.cpp \
-        mockserver.cpp \
         room.cpp \
         serverconnection.cpp \
-        tcpserverconnection.cpp
+        mockserver.cpp
 
 HEADERS += \
         connectiondialog.h \
@@ -43,10 +42,9 @@ HEADERS += \
         game_piece.h \
         globals.h \
         mainwindow.h \
-        mockserver.h \
         room.h \
         serverconnection.h \
-        tcpserverconnection.h
+        mockserver.h
 
 FORMS += \
         connectiondialog.ui \

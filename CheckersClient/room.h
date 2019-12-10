@@ -7,6 +7,7 @@ public:
     Room();
     Room(int id, QString name);
     Room(const Room &other_room);
+    ~Room();
     Room &operator=(const Room &other_room);
     QString text();
     int getId();

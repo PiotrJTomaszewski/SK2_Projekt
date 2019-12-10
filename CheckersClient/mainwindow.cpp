@@ -8,6 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->actionGameRoom, &QAction::triggered, this, &MainWindow::connectAndJoinRoom);
     server_connection = new MockServer();
+    connect(server_connection, &ServerConnection::setConnectionStatusSignal, this, &MainWindow::showConnectionStatus);
+
 }
 
 MainWindow::~MainWindow() {
@@ -18,7 +20,7 @@ MainWindow::~MainWindow() {
 void MainWindow::connectAndJoinRoom() {
     ConnectionDialog dialog(this->server_connection, this);
     dialog.exec();
-    if (server_connection->IN_ROOM) {
+    if (server_connection->getConnectionStatus() == ServerConnection::IN_ROOM) {
         ui->notInGameWarning->hide();
     }
 }

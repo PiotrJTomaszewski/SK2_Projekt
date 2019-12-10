@@ -2,8 +2,8 @@
 #include <QStringList>
 
 
-MockServer::MockServer() {
-    this->connection_status = NOT_CONNECTED;
+MockServer::MockServer() : ServerConnection() {
+    setConnectionStatus(NOT_CONNECTED);
     this->available_rooms = new std::vector<Room>;
 }
 
@@ -12,10 +12,10 @@ MockServer::~MockServer() {
     delete available_rooms;
 }
 
-ServerConnection::CONNECTION_STATUS MockServer::connect(QString address, int port) {
+ServerConnection::CONNECTION_STATUS MockServer::connectToServer(QString address, int port) {
     this->address = address;
     this->port = port;
-    this->connection_status = CONNECTED;
+    setConnectionStatus(CONNECTED);
     return CONNECTED;
 }
 
@@ -28,11 +28,20 @@ std::vector<Room> *MockServer::getAvailableRooms() {
 
 ServerConnection::CONNECTION_STATUS MockServer::joinRoom(int room_id) {
     qInfo("Selected room %d", room_id);
-    this->connection_status = IN_ROOM;
+    setConnectionStatus(IN_ROOM);
     return this->connection_status;
 }
 
 
 ServerConnection::CONNECTION_STATUS MockServer::getConnectionStatus() {
     return this->connection_status;
+}
+
+void MockServer::setConnectionStatus(CONNECTION_STATUS new_status) {
+    this->connection_status = new_status;
+    ServerConnection::setConnectionStatusSignal(new_status);
+}
+
+void MockServer::createRoom(QString room_name) {
+
 }

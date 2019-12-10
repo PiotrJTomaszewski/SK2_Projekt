@@ -1,6 +1,6 @@
 #include "room.h"
 
-Room::Room() {
+Room::Room() : QListWidgetItem() {
 
 }
 
@@ -16,6 +16,10 @@ Room::Room(const Room &other_room) : QListWidgetItem() {
     this->name = other_room.name;
     QString displayable_name = QString::number(id) + ": " + name;
     setData(Qt::DisplayRole, displayable_name);
+}
+
+Room::~Room() {
+
 }
 
 Room &Room::operator=(const Room &other_room) {

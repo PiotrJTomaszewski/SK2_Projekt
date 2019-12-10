@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "serverconnection.h"
 #include "mockserver.h"
 
 namespace Ui {
@@ -16,11 +15,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void connectAndJoinRoom();
-    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
 
 private:
     Ui::MainWindow *ui;
     ServerConnection *server_connection;
+
+private slots:
+    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
 };
 
 #endif // MAINWINDOW_H

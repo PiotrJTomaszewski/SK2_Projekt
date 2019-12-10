@@ -14,7 +14,6 @@ class ConnectionDialog : public QDialog
 
 public:
     explicit ConnectionDialog(ServerConnection *server_connection, QWidget *parent = nullptr);
-    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
     void fillRoomsList();
     ~ConnectionDialog();
 
@@ -24,6 +23,11 @@ private slots:
     void on_refreshButton_clicked();
 
     void on_joinRoomButton_clicked();
+
+    void on_createRoomButton_clicked();
+
+public slots:
+    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
 
 private:
     Ui::ConnectionDialog *ui;

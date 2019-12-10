@@ -1,5 +1,5 @@
 #include "serverconnection.h"
 
-ServerConnection::ServerConnection(){}
+ServerConnection::ServerConnection() : QObject() {}
 
 ServerConnection::~ServerConnection(){}

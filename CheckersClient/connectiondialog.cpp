@@ -1,5 +1,6 @@
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
+#include "createroomdialog.h"
 
 ConnectionDialog::ConnectionDialog(ServerConnection *server_connection, QWidget *parent) :
     QDialog(parent),
@@ -7,7 +8,9 @@ ConnectionDialog::ConnectionDialog(ServerConnection *server_connection, QWidget 
 {
     this->server_connection = server_connection;
     ui->setupUi(this);
-    showConnectionStatus(server_connection->getConnectionStatus());
+    connect(server_connection, &ServerConnection::setConnectionStatusSignal, this, &ConnectionDialog::showConnectionStatus);
+//    connect(server_connection, SIGNAL(server_connection->setConnectionStatusSignal()), this, SLOT(this->showConnectionStatus()))
+//    showConnectionStatus(server_connection->getConnectionStatus());
     local_room_list = new std::vector<Room>();
 }
 
@@ -45,6 +48,15 @@ void ConnectionDialog::showConnectionStatus(ServerConnection::CONNECTION_STATUS 
         ui->connectionProgress->setValue(50);
         break;
     case ServerConnection::IN_ROOM:
+        ui->connectionStatus->setStyleSheet("QLabel { color : green; }");
+        ui->connectionStatus->setText("You are in a game room");
+        ui->serverAddressText->setEnabled(false);
+        ui->serverPortBox->setEnabled(false);
+        ui->connectButton->setEnabled(false);
+        ui->disckonnectButton->setEnabled(true);
+        ui->refreshButton->setEnabled(true);
+        ui->roomsList->setEnabled(true);
+        ui->createRoomButton->setEnabled(true);
         ui->connectionProgress->setValue(100);
         break;
     default:
@@ -56,8 +68,8 @@ void ConnectionDialog::on_connectButton_clicked()
 {
     QString address = ui->serverAddressText->toPlainText();
     int port = ui->serverPortBox->value();
-    ServerConnection::CONNECTION_STATUS status = this->server_connection->connect(address, port);
-    showConnectionStatus(status);
+    ServerConnection::CONNECTION_STATUS status = this->server_connection->connectToServer(address, port);
+//    showConnectionStatus(status);
     if (status == ServerConnection::CONNECTED)
         fillRoomsList();
 }
@@ -82,7 +94,13 @@ void ConnectionDialog::on_joinRoomButton_clicked() {
     if (selected_room != nullptr) {
         int selected_room_id = selected_room->getId();
         ServerConnection::CONNECTION_STATUS status = this->server_connection->joinRoom(selected_room_id);
-        showConnectionStatus(status);
+//        showConnectionStatus(status);
     }
     // TODO: Add error handling
+}
+
+void ConnectionDialog::on_createRoomButton_clicked()
+{
+    CreateRoomDialog create_room_dialog(this->server_connection, this);
+    create_room_dialog.exec();
 }

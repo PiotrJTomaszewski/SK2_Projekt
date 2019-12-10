@@ -9,10 +9,14 @@ class MockServer: public ServerConnection {
 public:
     MockServer();
     ~MockServer();
-    CONNECTION_STATUS connect(QString address, int port);
+    CONNECTION_STATUS connectToServer(QString address, int port);
     std::vector<Room> *getAvailableRooms();
-    virtual CONNECTION_STATUS joinRoom(int room_id);
+    CONNECTION_STATUS joinRoom(int room_id);
     CONNECTION_STATUS getConnectionStatus();
+    void setConnectionStatus(CONNECTION_STATUS new_status);
+    void createRoom(QString room_name);
+
+
 private:
     CONNECTION_STATUS connection_status;
     QString address;
