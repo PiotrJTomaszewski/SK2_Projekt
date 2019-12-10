@@ -1,11 +1,12 @@
 #include "createroomdialog.h"
 #include "ui_createroomdialog.h"
+#include "serverconnectionobject.h"
 
-CreateRoomDialog::CreateRoomDialog(ServerConnection *server_connection, QWidget *parent) :
+CreateRoomDialog::CreateRoomDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CreateRoomDialog)
 {
-    this->server_connection = server_connection;
+    this->server_connection = ServerConnectionObject::getServerConnection();
     ui->setupUi(this);
     ui->errorText->hide();
 }

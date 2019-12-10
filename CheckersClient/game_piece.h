@@ -8,17 +8,20 @@
 
 class GamePiece : public QGraphicsPixmapItem {
 public:
-    GamePiece(const QPixmap &man_pixmap, const QPixmap &king_pixmap, const COLOR piece_color, QGraphicsItem *parent = nullptr);
+    GamePiece(const QPixmap &man_pixmap, const QPixmap &king_pixmap, const GLOBAL::COLOR piece_color, QGraphicsItem *parent = nullptr);
     QPointF getPos();
-    void setPieceType(PIECE_TYPE piece_type);
+    void setPieceType(GLOBAL::PIECE_TYPE piece_type);
     void promoteToKing();
-    PIECE_TYPE getPieceType();
-    COLOR getPieceColor();
+    GLOBAL::PIECE_TYPE getPieceType();
+    GLOBAL::COLOR getPieceColor();
     void setMoveable(bool should_be_moveable);
+    void setField(int field);
+    int getField();
 //    void setPos(qreal x, qreal y);
 private:
-    PIECE_TYPE piece_type;
-    COLOR piece_color;
+    int field;
+    GLOBAL::PIECE_TYPE piece_type;
+    GLOBAL::COLOR piece_color;
     const QPixmap *man_pixmap;
     const QPixmap *king_pixmap;
 };

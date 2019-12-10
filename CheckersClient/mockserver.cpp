@@ -1,5 +1,6 @@
 #include "mockserver.h"
 #include <QStringList>
+#include <QDebug>
 
 
 MockServer::MockServer() : ServerConnection() {
@@ -19,6 +20,11 @@ ServerConnection::CONNECTION_STATUS MockServer::connectToServer(QString address,
     return CONNECTED;
 }
 
+void MockServer::disconnectFromServer() {
+    qInfo("Disconnected");
+    setConnectionStatus(NOT_CONNECTED);
+}
+
 std::vector<Room> *MockServer::getAvailableRooms() {
     available_rooms->clear();
     available_rooms->push_back(Room(1, "asadd"));
@@ -29,6 +35,7 @@ std::vector<Room> *MockServer::getAvailableRooms() {
 ServerConnection::CONNECTION_STATUS MockServer::joinRoom(int room_id) {
     qInfo("Selected room %d", room_id);
     setConnectionStatus(IN_ROOM);
+    startGameSignal(GLOBAL::COLOR::LIGHT);
     return this->connection_status;
 }
 
@@ -44,4 +51,8 @@ void MockServer::setConnectionStatus(CONNECTION_STATUS new_status) {
 
 void MockServer::createRoom(QString room_name) {
 
+}
+
+void MockServer::movePiece(int from_field, int to_field) {
+    qInfo() << "Move piece from: " << from_field << " to: " << to_field;
 }

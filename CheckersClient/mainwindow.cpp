@@ -1,13 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "connectiondialog.h"
+#include "serverconnectionobject.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow) {
     ui->setupUi(this);
     connect(ui->actionGameRoom, &QAction::triggered, this, &MainWindow::connectAndJoinRoom);
-    server_connection = new MockServer();
+    server_connection = ServerConnectionObject::getServerConnection();
     connect(server_connection, &ServerConnection::setConnectionStatusSignal, this, &MainWindow::showConnectionStatus);
 
 }
@@ -18,9 +20,9 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::connectAndJoinRoom() {
-    ConnectionDialog dialog(this->server_connection, this);
+    ConnectionDialog dialog(this);
     dialog.exec();
-    if (server_connection->getConnectionStatus() == ServerConnection::IN_ROOM) {
+    if (this->server_connection->getConnectionStatus() == ServerConnection::IN_ROOM) {
         ui->notInGameWarning->hide();
     }
 }
@@ -37,6 +39,8 @@ void MainWindow::showConnectionStatus(ServerConnection::CONNECTION_STATUS connec
     case ServerConnection::IN_ROOM:
         ui->connectionStatus->setText("Waiting for oponent");
         ui->notInGameWarning->hide();
+        break;
+    case ServerConnection::IN_GAME:
         break;
     default:
         break;

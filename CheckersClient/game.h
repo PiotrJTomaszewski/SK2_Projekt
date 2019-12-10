@@ -9,6 +9,7 @@
 #include <QGraphicsPixmapItem>
 #include "game_piece.h"
 #include "globals.h"
+#include "serverconnection.h"
 
 #define ONE_COLOR_PIECES 12
 #define FIELDS 32
@@ -23,8 +24,11 @@ class Game : public QGraphicsView {
 public:
     explicit Game(QWidget *parent = nullptr);
     ~Game() override;
+    void startGame(GLOBAL::COLOR player_color);
+
 private:
-    COLOR player_color;
+    ServerConnection *server_connection;
+    GLOBAL::COLOR player_color;
     QGraphicsScene *scene;
     QGraphicsPixmapItem *board;
     GamePiece *light_pieces[ONE_COLOR_PIECES];
@@ -36,8 +40,6 @@ private:
     void movePickedUpPiece(int mouse_x, int mouse_y);
     void dropPickedUpPiece(int mouse_x, int mouse_y);
     GamePiece *picked_up_piece = nullptr;
-    // Position of the game piece at the moment of picking it up
-    QPointF picked_up_piece_position;
     void placePiecesAtStart();
     QPointF getFieldPosition(int field);
     int getFieldNumber(int x_position , int y_position);

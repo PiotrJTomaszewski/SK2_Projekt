@@ -1,16 +1,17 @@
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "createroomdialog.h"
+#include "serverconnectionobject.h"
 
-ConnectionDialog::ConnectionDialog(ServerConnection *server_connection, QWidget *parent) :
+ConnectionDialog::ConnectionDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConnectionDialog)
 {
-    this->server_connection = server_connection;
+    this->server_connection = ServerConnectionObject::getServerConnection();
     ui->setupUi(this);
     connect(server_connection, &ServerConnection::setConnectionStatusSignal, this, &ConnectionDialog::showConnectionStatus);
 //    connect(server_connection, SIGNAL(server_connection->setConnectionStatusSignal()), this, SLOT(this->showConnectionStatus()))
-//    showConnectionStatus(server_connection->getConnectionStatus());
+    showConnectionStatus(server_connection->getConnectionStatus());
     local_room_list = new std::vector<Room>();
 }
 
@@ -29,9 +30,10 @@ void ConnectionDialog::showConnectionStatus(ServerConnection::CONNECTION_STATUS 
         ui->serverAddressText->setEnabled(true);
         ui->serverPortBox->setEnabled(true);
         ui->connectButton->setEnabled(true);
-        ui->disckonnectButton->setEnabled(false);
+        ui->disconnectButton->setEnabled(false);
         ui->refreshButton->setEnabled(false);
         ui->roomsList->setEnabled(false);
+        ui->joinRoomButton->setEnabled(false);
         ui->createRoomButton->setEnabled(false);
         ui->connectionProgress->setValue(0);
         break;
@@ -41,9 +43,10 @@ void ConnectionDialog::showConnectionStatus(ServerConnection::CONNECTION_STATUS 
         ui->serverAddressText->setEnabled(false);
         ui->serverPortBox->setEnabled(false);
         ui->connectButton->setEnabled(false);
-        ui->disckonnectButton->setEnabled(true);
+        ui->disconnectButton->setEnabled(true);
         ui->refreshButton->setEnabled(true);
         ui->roomsList->setEnabled(true);
+        ui->joinRoomButton->setEnabled(true);
         ui->createRoomButton->setEnabled(true);
         ui->connectionProgress->setValue(50);
         break;
@@ -53,10 +56,11 @@ void ConnectionDialog::showConnectionStatus(ServerConnection::CONNECTION_STATUS 
         ui->serverAddressText->setEnabled(false);
         ui->serverPortBox->setEnabled(false);
         ui->connectButton->setEnabled(false);
-        ui->disckonnectButton->setEnabled(true);
-        ui->refreshButton->setEnabled(true);
-        ui->roomsList->setEnabled(true);
-        ui->createRoomButton->setEnabled(true);
+        ui->disconnectButton->setEnabled(true);
+        ui->refreshButton->setEnabled(false);
+        ui->roomsList->setEnabled(false);
+        ui->joinRoomButton->setEnabled(false);
+        ui->createRoomButton->setEnabled(false);
         ui->connectionProgress->setValue(100);
         break;
     default:
@@ -101,6 +105,11 @@ void ConnectionDialog::on_joinRoomButton_clicked() {
 
 void ConnectionDialog::on_createRoomButton_clicked()
 {
-    CreateRoomDialog create_room_dialog(this->server_connection, this);
+    CreateRoomDialog create_room_dialog(this);
     create_room_dialog.exec();
+}
+
+void ConnectionDialog::on_disconnectButton_clicked()
+{
+    server_connection->disconnectFromServer();
 }

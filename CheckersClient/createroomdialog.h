@@ -13,7 +13,7 @@ class CreateRoomDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CreateRoomDialog(ServerConnection *server_connection, QWidget *parent = nullptr);
+    explicit CreateRoomDialog(QWidget *parent = nullptr);
     ~CreateRoomDialog();
 
 private slots:

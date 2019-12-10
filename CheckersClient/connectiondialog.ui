@@ -73,7 +73,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="disckonnectButton">
+     <widget class="QPushButton" name="disconnectButton">
       <property name="text">
        <string>Disconnect</string>
       </property>

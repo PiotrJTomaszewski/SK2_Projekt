@@ -3,6 +3,7 @@
 #include <QString>
 #include <vector>
 #include "room.h"
+#include "globals.h"
 
 class ServerConnection : public QObject {
     Q_OBJECT
@@ -11,11 +12,13 @@ public:
     virtual ~ServerConnection() = 0;
     enum CONNECTION_STATUS {NOT_CONNECTED, CONNECTED, IN_ROOM, IN_GAME, CONNECTION_ERROR};
     virtual CONNECTION_STATUS connectToServer(QString address, int port) = 0;
+    virtual void disconnectFromServer() = 0;
     virtual std::vector<Room> *getAvailableRooms() = 0;
     virtual CONNECTION_STATUS joinRoom(int room_id) = 0;
     virtual CONNECTION_STATUS getConnectionStatus() = 0;
     virtual void setConnectionStatus(CONNECTION_STATUS new_status) = 0;
     virtual void createRoom(QString room_name) = 0;
+    virtual void movePiece(int from_field, int to_field) = 0;
 
 private:
     CONNECTION_STATUS connection_status;
@@ -25,6 +28,7 @@ private:
 
 signals:
     void setConnectionStatusSignal(CONNECTION_STATUS new_status);
+    void startGameSignal(GLOBAL::COLOR color);
 };
 
 #endif // SERVERCONNECTION_H

@@ -13,7 +13,7 @@ class ConnectionDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ConnectionDialog(ServerConnection *server_connection, QWidget *parent = nullptr);
+    explicit ConnectionDialog(QWidget *parent = nullptr);
     void fillRoomsList();
     ~ConnectionDialog();
 
@@ -25,6 +25,8 @@ private slots:
     void on_joinRoomButton_clicked();
 
     void on_createRoomButton_clicked();
+
+    void on_disconnectButton_clicked();
 
 public slots:
     void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
