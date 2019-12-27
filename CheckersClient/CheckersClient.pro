@@ -34,7 +34,8 @@ SOURCES += \
         room.cpp \
         serverconnection.cpp \
         mockserver.cpp \
-        serverconnectionobject.cpp
+        serverconnectionobject.cpp \
+        tcpserver.cpp
 
 HEADERS += \
         connectiondialog.h \
@@ -46,7 +47,8 @@ HEADERS += \
         room.h \
         serverconnection.h \
         mockserver.h \
-        serverconnectionobject.h
+        serverconnectionobject.h \
+        tcpserver.h
 
 FORMS += \
         connectiondialog.ui \
