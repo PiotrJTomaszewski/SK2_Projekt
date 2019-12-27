@@ -1,0 +1,4 @@
+#ifndef CHECKERSSERVER_SERVER_H
+#define CHECKERSSERVER_SERVER_H
+void server_run(int port);
+#endif //CHECKERSSERVER_SERVER_H
