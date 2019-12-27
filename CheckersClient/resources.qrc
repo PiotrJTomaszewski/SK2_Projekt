@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>textures/dark_man.png</file>
+        <file>textures/board.png</file>
+        <file>textures/light_man.png</file>
+        <file>textures/dark_king.png</file>
+        <file>textures/light_king.png</file>
+    </qresource>
+</RCC>
