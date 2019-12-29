@@ -25,7 +25,7 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     this->scene->setSceneRect(0, 0, width, height);
     this->server_connection = ServerConnectionObject::getServerConnection();
     // Connect signals from server
-    connect(this->server_connection, &ServerConnection::startGameSignal, this, &Game::startGame);
+    connect(this->server_connection, &TcpClient::startGameSignal, this, &Game::startGame);
 }
 
 Game::~Game() {

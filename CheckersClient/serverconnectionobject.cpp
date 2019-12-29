@@ -1,16 +1,16 @@
 #include "serverconnectionobject.h"
-#include "mockserver.h"
+#include "tcpClient.h"
 
-ServerConnection* ServerConnectionObject::server_connection = nullptr;
+TcpClient* ServerConnectionObject::server_connection = nullptr;
 
 ServerConnectionObject::ServerConnectionObject() {
-    server_connection = new MockServer();
+    server_connection = new TcpClient();
 }
 
 ServerConnectionObject::~ServerConnectionObject() {
     delete server_connection;
 }
 
-ServerConnection* ServerConnectionObject::getServerConnection() {
+TcpClient* ServerConnectionObject::getServerConnection() {
     return server_connection;
 }

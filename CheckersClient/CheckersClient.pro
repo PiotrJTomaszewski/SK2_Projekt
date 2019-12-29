@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -26,33 +27,26 @@ CONFIG += c++11
 
 SOURCES += \
         connectiondialog.cpp \
-        createroomdialog.cpp \
         game.cpp \
         game_piece.cpp \
         main.cpp \
         mainwindow.cpp \
         room.cpp \
-        serverconnection.cpp \
-        mockserver.cpp \
         serverconnectionobject.cpp \
-        tcpserver.cpp
+        tcpClient.cpp
 
 HEADERS += \
         connectiondialog.h \
-        createroomdialog.h \
         game.h \
         game_piece.h \
         globals.h \
         mainwindow.h \
         room.h \
-        serverconnection.h \
-        mockserver.h \
         serverconnectionobject.h \
-        tcpserver.h
+        tcpClient.h
 
 FORMS += \
         connectiondialog.ui \
-        createroomdialog.ui \
         mainwindow.ui
 
 # Default rules for deployment.

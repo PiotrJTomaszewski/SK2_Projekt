@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>597</width>
-    <height>487</height>
+    <width>599</width>
+    <height>249</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>430</y>
+     <x>50</x>
+     <y>180</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -81,16 +81,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QListWidget" name="roomsList">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>200</y>
-     <width>256</width>
-     <height>192</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLabel" name="connectionStatus">
    <property name="geometry">
     <rect>
@@ -102,32 +92,6 @@
    </property>
    <property name="text">
     <string>You are not connected!</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="refreshButton">
-   <property name="geometry">
-    <rect>
-     <x>450</x>
-     <y>210</y>
-     <width>80</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Refresh list</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="createRoomButton">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>210</y>
-     <width>101</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Create room</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -167,19 +131,6 @@
    </property>
    <property name="value">
     <number>24</number>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="joinRoomButton">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>240</y>
-     <width>80</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Join room</string>
    </property>
   </widget>
  </widget>

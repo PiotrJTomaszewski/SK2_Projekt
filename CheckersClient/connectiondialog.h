@@ -2,7 +2,7 @@
 #define CONNECTIONDIALOG_H
 
 #include <QDialog>
-#include "serverconnection.h"
+#include "tcpClient.h"
 
 namespace Ui {
 class ConnectionDialog;
@@ -29,12 +29,12 @@ private slots:
     void on_disconnectButton_clicked();
 
 public slots:
-    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
+    void showConnectionStatus(TcpClient::CONNECTION_STATUS connection_status);
 
 private:
     Ui::ConnectionDialog *ui;
-    ServerConnection *server_connection;
-    std::vector<Room> *local_room_list;
+    TcpClient *server_connection;
+//    std::vector<Room> *local_room_list;
 };
 
 #endif // CONNECTIONDIALOG_H

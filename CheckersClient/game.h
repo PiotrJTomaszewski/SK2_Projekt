@@ -9,7 +9,7 @@
 #include <QGraphicsPixmapItem>
 #include "game_piece.h"
 #include "globals.h"
-#include "serverconnection.h"
+#include "tcpClient.h"
 
 #define ONE_COLOR_PIECES 12
 #define FIELDS 32
@@ -27,7 +27,7 @@ public:
     void startGame(GLOBAL::COLOR player_color);
 
 private:
-    ServerConnection *server_connection;
+    TcpClient *server_connection;
     GLOBAL::COLOR player_color;
     QGraphicsScene *scene;
     QGraphicsPixmapItem *board;

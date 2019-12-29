@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "mockserver.h"
+#include "tcpClient.h"
 
 namespace Ui {
 class MainWindow;
@@ -18,10 +18,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    ServerConnection *server_connection;
+    TcpClient *server_connection;
 
 private slots:
-    void showConnectionStatus(ServerConnection::CONNECTION_STATUS connection_status);
+    void showConnectionStatus(TcpClient::CONNECTION_STATUS connection_status);
 };
 
 #endif // MAINWINDOW_H

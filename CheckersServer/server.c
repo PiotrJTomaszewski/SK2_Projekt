@@ -8,31 +8,24 @@
 #include <malloc.h>
 #include <sys/poll.h>
 #include <unistd.h>
+#include <tkPort.h>
+#include <stdlib.h>
+#include <time.h>
 #include "server.h"
 #include "clientsList.h"
-#include "roomList.h"
 #include "room.h"
 #include "game.h"
 #include "messages.h"
+#include "playersList.h"
 
 #define BACKLOG_SIZE 1024
 
 struct CLIENTS_LIST clients_list;
-struct ROOMS_LIST rooms_list;
+struct PLAYERS_LIST players_list;
 
 struct CLIENT_THREAD_DATA {
     int client_fd;
 };
-
-
-//void *_handle_connection(void *client_thread_data_param) {
-//    pthread_detach(pthread_self());
-//    struct CLIENT_THREAD_DATA *client_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
-//    printf("DEBUG: New client connected\n");
-//    printf("Welcome %d\n", ntohl(client_data->client_fd));
-//    free(client_data);
-//    return 0;
-//}
 
 void send_message(int client_fd, char *message) {
     // TODO: Make sure the whole message was sent
@@ -46,41 +39,64 @@ void send_message(int client_fd, char *message) {
 //    printf("Sent %d\n", (int)sent_bytes);
 }
 
-void start_game(int room_id) {
-    struct ROOM *room = &rooms_list.rooms[room_id];
+void *receive_message(int client_fd, char *buf, size_t buf_size) {
+    ssize_t n;
+    n = recv(client_fd, buf, buf_size, 0);
+    printf("%s\n", buf);
+}
+
+struct ROOM *join_room(struct PLAYER *player) {
+    struct ROOM *room = player_list_get_free_room(&players_list);
+    if (room == NULL) {  // There is no free room
+        // Create new room
+        room = malloc(sizeof(struct ROOM));
+        room_init(room);
+        printf("New room created\n");
+        send_message(player->file_descriptor, MSG_WAITING_FOR_OPPONENT);
+    }
+    player_assign_room(player, room);
+    return room;
+}
+
+void start_game(struct ROOM *room) {
     room->game_instance = malloc(sizeof(struct GAME_INSTANCE));
     place_pieces(room->game_instance);
-    // TODO: Move that
-    room->game_instance->game_state = STATE_LIGHT_TURN;
-    // TODO: Randomize colors
-    room->player_one_color = COLOR_LIGHT;
-    room->player_two_color = COLOR_DARK;
-    send_message(room->player_one_fd, MSG_YOU_PLAY_LIGHT);
-    send_message(room->player_two_fd, MSG_YOU_PLAY_DARK);
+    if (rand() % 2) {
+        room->player_one->player_color = COLOR_LIGHT;
+        room->player_two->player_color = COLOR_DARK;
+        send_message(room->player_one->file_descriptor, MSG_YOU_PLAY_LIGHT);
+        send_message(room->player_two->file_descriptor, MSG_YOU_PLAY_DARK);
+    } else {
+        room->player_one->player_color = COLOR_DARK;
+        room->player_two->player_color = COLOR_LIGHT;
+        send_message(room->player_one->file_descriptor, MSG_YOU_PLAY_DARK);
+        send_message(room->player_two->file_descriptor, MSG_YOU_PLAY_LIGHT);
+    }
 }
 
 void *_handle_new_connection(void *client_thread_data_param) {
     pthread_detach(pthread_self());
-    struct CLIENT_THREAD_DATA *client_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
+    struct CLIENT_THREAD_DATA *player_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
     printf("New client connected\n");
-    int client_fd = client_data->client_fd;
-    printf("Client fd %d\n", client_fd);
-    int client_id = client_list_add(&clients_list, client_fd);
-    int room_id = rooms_list_find_free_room(&rooms_list);
-    if (room_id == -1) { // No free room was found, so create a new one
-        room_id = rooms_list_add(&rooms_list, client_fd);
-        send_message(client_fd, MSG_WAITING_FOR_OPPONENT);
-    } else { // A free room was found
-        // Join the room
-        rooms_list.rooms[room_id].player_two_fd = client_fd;
-        rooms_list.rooms[room_id].number_of_players = 2;
-        send_message(client_fd, MSG_ROOM_FOUND);
-        start_game(room_id);
-    }
-    // Mark room id in the client
-    clients_list.rooms_id[client_id] = room_id;
-    free(client_data);
+    int player_fd = player_data->client_fd;
+    printf("Client fd %d\n", player_fd);
+    send_message(player_fd, MSG_WELCOME);
+
+    struct PLAYER *player = player_list_add(&players_list, player_fd);
+    struct ROOM *room = join_room(player);
+    if (room->number_of_players == 2)
+        start_game(room);
+    free(player_data);
     return 0;
+}
+
+void *_handle_existing_connection(void *client_thread_data_param) {
+    pthread_detach(pthread_self());
+    struct CLIENT_THREAD_DATA *player_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
+    printf("DEBUG: Existing connection\n");
+    char buf[256];
+    int player_fd = player_data->client_fd;
+    receive_message(player_fd, buf, 256);
 }
 
 int _setup_socket(int port) {
@@ -111,8 +127,9 @@ void server_run(int port) {
     int server_socket_fd = _setup_socket(port);
     printf("DEBUG: Server starting\n");
 
+    srand(132);
     client_list_init(&clients_list);
-    rooms_list_init(&rooms_list);
+    player_list_init(&players_list);
     // Add listener to clients list
     client_list_add(&clients_list, server_socket_fd);
     while (run_flag) {
@@ -125,28 +142,20 @@ void server_run(int port) {
         // Check if some client is ready
         for (unsigned i = 0; i < clients_list.number_of_clients; ++i) {
             if (clients_list.clients_fd[i].revents & POLLIN) {
+                pthread_t thread;
+                struct CLIENT_THREAD_DATA *thread_data = malloc(sizeof(struct CLIENT_THREAD_DATA));
                 if (clients_list.clients_fd[i].fd == server_socket_fd) {
                     // Handle a new connection
                     int client_fd = accept(server_socket_fd, NULL, NULL);
-                    pthread_t thread;
-                    struct CLIENT_THREAD_DATA *thread_data = malloc(sizeof(struct CLIENT_THREAD_DATA));
                     thread_data->client_fd = client_fd;
+                    // Add client to the list
+                    client_list_add(&clients_list, client_fd);
                     pthread_create(&thread, NULL, _handle_new_connection, thread_data);
-//                    client_list_add(&clients_list, client_fd);
                 } else {
                     int client_fd = clients_list.clients_fd[i].fd;
                     // Handle existing connection
-                    printf("DEBUG: Existing connection\n");
-                    char buf[128];
-                    ssize_t n = recv(client_fd, buf, sizeof buf, 0);
-                    if (n > 0) {
-                        printf("%s", buf);
-                    } else if (n == 0) {
-                        printf("DEBUG: Connection closed by the client\n");
-                        close(client_fd);
-                    } else {
-                        perror("Error recv.");
-                    } // if (n > 0)
+                    thread_data->client_fd = client_fd;
+                    pthread_create(&thread, NULL, _handle_existing_connection, thread_data);
                 } // if (clients_list.clients_fd[i].fd == server_socket_fd)
             } // if (clients_list.clients_fd[i].revents & POLLIN)
         } // Poll loop

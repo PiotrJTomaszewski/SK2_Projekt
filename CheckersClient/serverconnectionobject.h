@@ -1,15 +1,15 @@
 #ifndef SERVERCONNECTIONOBJECT_H
 #define SERVERCONNECTIONOBJECT_H
-#include "serverconnection.h"
+#include "tcpClient.h"
 
 class ServerConnectionObject
 {
 public:
     ServerConnectionObject();
     ~ServerConnectionObject();
-    static ServerConnection* getServerConnection();
+    static TcpClient* getServerConnection();
 private:
-    static ServerConnection *server_connection;
+    static TcpClient *server_connection;
 };
 
 #endif // SERVERCONNECTIONOBJECT_H
