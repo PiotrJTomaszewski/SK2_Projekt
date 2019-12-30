@@ -43,3 +43,12 @@ struct ROOM *player_list_get_free_room(struct PLAYERS_LIST *list) {
     }
     return NULL;
 }
+
+struct PLAYER *player_get_by_fd(struct PLAYERS_LIST *list, int fd) {
+    for (unsigned i = 0; i < list->number_of_players; ++i) {
+        if (list->players[i]->file_descriptor == fd) {
+            return list->players[i];
+        }
+    }
+    return NULL;
+}

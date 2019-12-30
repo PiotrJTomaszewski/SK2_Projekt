@@ -42,7 +42,7 @@ void TcpClient::setConnectionStatus(CONNECTION_STATUS new_status) {
 
 void TcpClient::movePiece(int from_field, int to_field) {
     char message[20];
-    sprintf(message, "move_piece_%d_%d;", from_field, to_field);
+    sprintf(message, "move_piece_%02d_%02d;", from_field, to_field);
     tcp_socket->write(message);
     qInfo() << "Move piece from: " << from_field << " to: " << to_field;
 }
@@ -61,10 +61,42 @@ void TcpClient::readData() {
         else if (splitted_data[i] == "play_light") {
             this->setConnectionStatus(IN_GAME_LIGHT);
             startGameSignal(GLOBAL::COLOR::LIGHT);
+            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
         }
         else if (splitted_data[i] == "play_dark") {
             this->setConnectionStatus(IN_GAME_DARK);
             startGameSignal(GLOBAL::COLOR::DARK);
+            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+        }
+        else if (splitted_data[i] == "dark_turn")  {
+            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_DARK);
+        }
+        else if (splitted_data[i] == "light_turn") {
+            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+        }
+        else if (splitted_data[i].contains("game_error_")) {
+            std::string error_code_str = splitted_data[i].toStdString();
+            char last_char = error_code_str[error_code_str.length()-1];
+            GLOBAL::GAME_ERROR error_code = static_cast<GLOBAL::GAME_ERROR>(last_char - '0');
+            this->lastGameError = error_code;
+            this->gameErrorSignal(error_code);
+        }
+        else if (splitted_data[i].contains("pieced_moved_")) {
+            std::string data_str = splitted_data[i].toStdString();
+            char number[2] = {data_str[13], data_str[14]};
+            int from_field = atoi(number);
+            number[0] = data_str[16];
+            number[1] = data_str[17];
+            int to_field = atoi(number);
+            qInfo() << from_field << ' ' << to_field;
+            this->gamePieceMovedSignal(from_field, to_field);
+        }
+        else if (splitted_data[i].contains("promote_")) {
+            std::string data_str = splitted_data[i].toStdString();
+            char number[2] = {data_str[8], data_str[9]};
+            int field = atoi(number);
+            qInfo() << "Promoting " << field;
+            gamePromotePieceSignal(field);
         }
     }
 }
@@ -81,4 +113,8 @@ void TcpClient::displayError(QAbstractSocket::SocketError socketError) {
 void TcpClient::server_disconnected() {
     qInfo() << "Server disconnected";
     this->setConnectionStatus(NOT_CONNECTED);
+}
+
+GLOBAL::GAME_ERROR TcpClient::getLastGameError() {
+    return this->lastGameError;
 }

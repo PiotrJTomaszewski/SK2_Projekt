@@ -6,11 +6,10 @@ void player_assign_room(struct PLAYER *player, struct ROOM *room) {
     player->is_in_room = 1;
     if (room->number_of_players == 0) {
         room->player_one = player;
-        room->number_of_players = 1;
     } else {
         room->player_two = player;
-        room->number_of_players = 2;
     }
+    room->number_of_players++;
 }
 
 void player_leave_room(struct PLAYER *player) {

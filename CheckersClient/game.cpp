@@ -6,16 +6,12 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     scene = new QGraphicsScene(this);
     this->setScene(scene);
     const QPixmap board_pixmap(":/textures/board.png");
-    const QPixmap dark_man_pixmap(":/textures/dark_man.png");
-    const QPixmap light_man_pixmap(":/textures/light_man.png");
-    const QPixmap dark_king_pixmap(":/textures/dark_king.png");
-    const QPixmap light_king_pixmap(":/textures/light_king.png");
     this->board = new QGraphicsPixmapItem(board_pixmap);
     this->scene->addItem(board);
     for (int i=0; i< ONE_COLOR_PIECES; ++i) {
-        this->light_pieces[i] = new GamePiece(light_man_pixmap, light_king_pixmap, GLOBAL::LIGHT);
+        this->light_pieces[i] = new GamePiece(":/textures/light_man.png", ":/textures/light_king.png", GLOBAL::LIGHT);
         this->scene->addItem(light_pieces[i]);
-        this->dark_pieces[i]  = new GamePiece(dark_man_pixmap, dark_king_pixmap, GLOBAL::DARK);
+        this->dark_pieces[i]  = new GamePiece(":/textures/dark_man.png", ":/textures/dark_king.png", GLOBAL::DARK);
         this->scene->addItem(dark_pieces[i]);
     }
     this->player_color = GLOBAL::LIGHT; // TODO: Get that from server
@@ -26,6 +22,9 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
     this->server_connection = ServerConnectionObject::getServerConnection();
     // Connect signals from server
     connect(this->server_connection, &TcpClient::startGameSignal, this, &Game::startGame);
+    connect(this->server_connection, &TcpClient::gamePieceMovedSignal, this, &Game::gamePieceMovedSlot);
+    connect(this->server_connection, &TcpClient::gamePromotePieceSignal, this, &Game::gamePromotePieceSlot);
+
 }
 
 Game::~Game() {
@@ -98,9 +97,25 @@ void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
             picked_up_piece->setPos(getFieldPosition(from_field));
         }
         else {
-            picked_up_piece->setPos(getFieldPosition(to_field));
-            picked_up_piece->setField(to_field);
             this->server_connection->movePiece(from_field, to_field);
+            // Wait for the response from the server
+            QTimer timer;
+            timer.setSingleShot(true);
+            QEventLoop loop;
+            connect( this->server_connection, &TcpClient::gameErrorSignal, &loop, &QEventLoop::quit );
+            connect( &timer, &QTimer::timeout, &loop, &QEventLoop::quit );
+            timer.start(10000);
+            loop.exec();
+            if(timer.isActive()) {
+                if (this->server_connection->getLastGameError() == GLOBAL::GAME_ERROR::NO_ERROR) {
+                    picked_up_piece->setPosition(getFieldPosition(to_field), to_field);
+                }
+                else {
+                    picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
+                }
+            }
+            else
+                qDebug("timeout");
         }
         this->picked_up_piece->setZValue(10);
         this->picked_up_piece = nullptr;
@@ -110,10 +125,8 @@ void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
 void Game::placePiecesAtStart() {
     int light_pieces_start = FIELDS - ONE_COLOR_PIECES;
     for (int i=0; i< ONE_COLOR_PIECES; ++i) {
-        this->dark_pieces[i]->setPos(getFieldPosition(i));
-        this->dark_pieces[i]->setField(i);
-        this->light_pieces[i]->setPos(getFieldPosition(light_pieces_start+i));
-        this->light_pieces[i]->setField(light_pieces_start+i);
+        this->dark_pieces[i]->setPosition(getFieldPosition(i), i);
+        this->light_pieces[i]->setPosition(getFieldPosition(light_pieces_start+i), light_pieces_start+i);
     }
 }
 
@@ -160,4 +173,44 @@ int Game::getFieldNumber(int x_position , int y_position) {
 
 int Game::getFieldNumber(QPointF position) {
     return getFieldNumber(static_cast<int>(position.x()), static_cast<int>(position.y()));
+}
+
+void Game::gamePieceMovedSlot(int from_field, int to_field) {
+    GamePiece *piece_to_move = nullptr;
+    for (int i=0; i < FIELDS; ++i) {
+        if (light_pieces[i]->getField() == from_field) {
+            piece_to_move = light_pieces[i];
+            break;
+        }
+        if (dark_pieces[i]->getField() == from_field) {
+            piece_to_move = dark_pieces[i];
+            break;
+        }
+    }
+    if (piece_to_move != nullptr) {
+        if (to_field == -1) { // The piece was captured
+            qInfo() << "Capturing " << to_field;
+            piece_to_move->capture();
+        }
+        else {
+            piece_to_move->setPosition(getFieldPosition(to_field), to_field);
+        }
+    }
+}
+
+void Game::gamePromotePieceSlot(int field) {
+    GamePiece *piece_to_promote = nullptr;
+    for (int i=0; i < FIELDS; ++i) {
+        if (light_pieces[i]->getField() == field) {
+            piece_to_promote = light_pieces[i];
+            break;
+        }
+        if (dark_pieces[i]->getField() == field) {
+            piece_to_promote = dark_pieces[i];
+            break;
+        }
+    }
+    if (piece_to_promote != nullptr) {
+        piece_to_promote->promoteToKing();
+    }
 }

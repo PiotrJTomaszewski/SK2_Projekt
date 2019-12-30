@@ -22,6 +22,8 @@ private:
 
 private slots:
     void showConnectionStatus(TcpClient::CONNECTION_STATUS connection_status);
+    void showGameStatus(GLOBAL::GAME_STATUS status);
+    void showGameError(GLOBAL::GAME_ERROR error);
 };
 
 #endif // MAINWINDOW_H

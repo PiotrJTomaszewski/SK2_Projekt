@@ -47,6 +47,8 @@ private:
 signals:
 
 public slots:
+    void gamePieceMovedSlot(int from_field, int to_field);
+    void gamePromotePieceSlot(int field);
 };
 
 #endif // GAME_H

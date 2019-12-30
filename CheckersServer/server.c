@@ -29,7 +29,7 @@ struct CLIENT_THREAD_DATA {
 
 void send_message(int client_fd, char *message) {
     // TODO: Make sure the whole message was sent
-    size_t message_length = strlen(message);
+    ssize_t message_length = strlen(message);
 //    size_t sent_bytes = 0;
     ssize_t n;
 //    while (sent_bytes < message_length) {
@@ -39,10 +39,89 @@ void send_message(int client_fd, char *message) {
 //    printf("Sent %d\n", (int)sent_bytes);
 }
 
-void *receive_message(int client_fd, char *buf, size_t buf_size) {
+void *receive_message(int client_fd, char *buf, ssize_t buf_size) {
     ssize_t n;
     n = recv(client_fd, buf, buf_size, 0);
-    printf("%s\n", buf);
+    if (n > 0)
+        printf("%s\n", buf);
+    // TODO: Add error handling
+}
+
+void end_tour(struct ROOM *room) {
+    struct GAME_INSTANCE *instance = room->game_instance;
+    if (instance->game_state == STATE_DARK_TURN) {
+        instance->game_state = STATE_LIGHT_TURN;
+        send_message(room->player_one->file_descriptor, MSG_LIGHT_TURN);
+        send_message(room->player_two->file_descriptor, MSG_LIGHT_TURN);
+    } else if (instance->game_state == STATE_LIGHT_TURN) {
+        instance->game_state = STATE_DARK_TURN;
+        send_message(room->player_one->file_descriptor, MSG_DARK_TURN);
+        send_message(room->player_two->file_descriptor, MSG_DARK_TURN);
+    }
+
+}
+
+void server_check_promote_piece(struct ROOM *room, int field) {
+    // Promote piece to king
+    if (check_and_promote(room->game_instance, field) == 1) {
+        char *message = malloc(sizeof(MSG_PROMOTE) + 3);
+        sprintf(message, "%s%02d;", MSG_PROMOTE, field);
+        send_message(room->player_one->file_descriptor, message);
+        send_message(room->player_two->file_descriptor, message);
+        free(message);
+    }
+}
+
+void server_move_piece(struct PLAYER *current_player, int from_field, int to_field) {
+    struct GAME_INSTANCE *instance = current_player->room->game_instance;
+    struct MOVE_RESULT move_result = move_piece(instance, from_field, to_field, current_player->player_color);
+    if (move_result.end_tour == 1) {
+        end_tour(current_player->room);
+    }
+    printf("Error %d\n", (int) move_result.move_error);
+    char *error_message = malloc(sizeof(MSG_GAME_ERROR) + 2);
+    sprintf(error_message, "%s%d;", MSG_GAME_ERROR, move_result.move_error);
+    send_message(current_player->file_descriptor, error_message);
+    free(error_message);
+    show_board(instance);
+    if (move_result.move_error == ERROR_NO_ERROR) { // If there was no error, inform the other player about the move
+        char *message = malloc(sizeof(MSG_PIECE_MOVE) + 6);
+        sprintf(message, "%s%02d_%02d;", MSG_PIECE_MOVE, from_field, to_field);
+        int other_player_fd;
+        if (current_player->file_descriptor == current_player->room->player_one->file_descriptor)
+            other_player_fd = current_player->room->player_two->file_descriptor;
+        else
+            other_player_fd = current_player->room->player_one->file_descriptor;
+
+        send_message(other_player_fd, message);
+        free(message);
+        if (move_result.captured_piece_field != -1) { // Inform players that the piece was captured
+            message = malloc(sizeof(MSG_PIECE_MOVE) + 6);
+            sprintf(message, "%s%02d_%02d;", MSG_PIECE_MOVE, move_result.captured_piece_field, -1);
+            send_message(current_player->file_descriptor, message);
+            send_message(other_player_fd, message);
+            free(message);
+        }
+        server_check_promote_piece(current_player->room, to_field);
+    }
+}
+
+void parse_message(struct PLAYER *player, char *message, int message_length) {
+    if (player->player_color == COLOR_NO_COLOR) // If there is no game
+        return;
+    struct GAME_INSTANCE *instance = player->room->game_instance;
+    if (instance->game_state == STATE_LIGHT_TURN || instance->game_state == STATE_DARK_TURN) {
+        if (strlen(message) >= 16) {
+            if (strncmp(message, "move_piece_", 11) == 0) {
+                char number[2] = {message[11], message[12]};
+                int from_field = atoi(number);
+                number[0] = message[14];
+                number[1] = message[15];
+                int to_field = atoi(number);
+                server_move_piece(player, from_field, to_field);
+            }
+        }
+    }
 }
 
 struct ROOM *join_room(struct PLAYER *player) {
@@ -59,7 +138,7 @@ struct ROOM *join_room(struct PLAYER *player) {
 }
 
 void start_game(struct ROOM *room) {
-    room->game_instance = malloc(sizeof(struct GAME_INSTANCE));
+    printf("DEBUG: Game starting\n");
     place_pieces(room->game_instance);
     if (rand() % 2) {
         room->player_one->player_color = COLOR_LIGHT;
@@ -96,7 +175,9 @@ void *_handle_existing_connection(void *client_thread_data_param) {
     printf("DEBUG: Existing connection\n");
     char buf[256];
     int player_fd = player_data->client_fd;
+    struct PLAYER *player = player_get_by_fd(&players_list, player_fd);
     receive_message(player_fd, buf, 256);
+    parse_message(player, buf, strlen(buf));
 }
 
 int _setup_socket(int port) {
