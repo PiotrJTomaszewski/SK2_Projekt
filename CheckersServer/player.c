@@ -1,4 +1,5 @@
 #include <malloc.h>
+#include <unistd.h>
 #include "player.h"
 
 void player_init(struct PLAYER *player) {
@@ -7,6 +8,8 @@ void player_init(struct PLAYER *player) {
 }
 
 void player_free_memory(struct PLAYER *player) {
+    printf("Freeing player memory and closing %d\n", player->file_descriptor);
+    close(player->file_descriptor);
     circ_buffer_free_memory(player->buffer);
     free(player->buffer);
 }
