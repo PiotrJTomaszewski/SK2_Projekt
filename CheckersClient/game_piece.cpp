@@ -29,7 +29,7 @@ void GamePiece::setPieceType(GLOBAL::PIECE_TYPE piece_type) {
 
 void GamePiece::capture() {
     this->piece_type = GLOBAL::NO_PIECE;
-    this->hide();
+    this->setVisible(false);
 }
 
 void GamePiece::promoteToKing() {

@@ -1,6 +1,7 @@
 #include "tcpClient.h"
 #include <QStringList>
 #include <QDebug>
+#include "server_client_messages.h"
 
 
 TcpClient::TcpClient() : QObject(){
@@ -21,8 +22,8 @@ void TcpClient::connectToServer(QString address, int port) {
     this->address = address;
     this->port = port;
     this->tcp_socket->connectToHost(address, static_cast<quint16>(port));
-//    setConnectionStatus(CONNECTED);
-//    return CONNECTED;
+    //    setConnectionStatus(CONNECTED);
+    //    return CONNECTED;
 }
 
 void TcpClient::disconnectFromServer() {
@@ -41,62 +42,98 @@ void TcpClient::setConnectionStatus(CONNECTION_STATUS new_status) {
 }
 
 void TcpClient::movePiece(int from_field, int to_field) {
-    char message[20];
-    sprintf(message, "move_piece_%02d_%02d;", from_field, to_field);
+    char message[SCMSG_MESSAGE_LENGTH];
+    sprintf(message, "%02d %02d %02d\n", static_cast<int>(SCMSG_MOVE_PIECE), from_field, to_field);
     tcp_socket->write(message);
     qInfo() << "Move piece from: " << from_field << " to: " << to_field;
 }
 
 void TcpClient::readData() {
-    QString data = tcp_socket->readAll();
-    QStringList splitted_data = data.split(';');
-    for (int i=0; i<splitted_data.size(); ++i) {
-        qInfo() << splitted_data[i];
-        if (splitted_data[i] == "welcome") {
-            this->setConnectionStatus(CONNECTED);
-        }
-        else if (splitted_data[i] == "waiting_for_opponent") {
-            this->setConnectionStatus(IN_ROOM);
-        }
-        else if (splitted_data[i] == "play_light") {
-            this->setConnectionStatus(IN_GAME_LIGHT);
-            startGameSignal(GLOBAL::COLOR::LIGHT);
-            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
-        }
-        else if (splitted_data[i] == "play_dark") {
-            this->setConnectionStatus(IN_GAME_DARK);
-            startGameSignal(GLOBAL::COLOR::DARK);
-            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
-        }
-        else if (splitted_data[i] == "dark_turn")  {
-            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_DARK);
-        }
-        else if (splitted_data[i] == "light_turn") {
-            this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
-        }
-        else if (splitted_data[i].contains("game_error_")) {
-            std::string error_code_str = splitted_data[i].toStdString();
-            char last_char = error_code_str[error_code_str.length()-1];
-            GLOBAL::GAME_ERROR error_code = static_cast<GLOBAL::GAME_ERROR>(last_char - '0');
-            this->lastGameError = error_code;
-            this->gameErrorSignal(error_code);
-        }
-        else if (splitted_data[i].contains("pieced_moved_")) {
-            std::string data_str = splitted_data[i].toStdString();
-            char number[2] = {data_str[13], data_str[14]};
-            int from_field = atoi(number);
-            number[0] = data_str[16];
-            number[1] = data_str[17];
-            int to_field = atoi(number);
-            qInfo() << from_field << ' ' << to_field;
-            this->gamePieceMovedSignal(from_field, to_field);
-        }
-        else if (splitted_data[i].contains("promote_")) {
-            std::string data_str = splitted_data[i].toStdString();
-            char number[2] = {data_str[8], data_str[9]};
-            int field = atoi(number);
-            qInfo() << "Promoting " << field;
-            gamePromotePieceSignal(field);
+    while (tcp_socket->canReadLine()) {
+        SERVER_CLIENT_MESSAGE message_code;
+        int tmp;
+        int param1;
+        int param2;
+        QString data_line = tcp_socket->readLine();
+        qInfo() << "Message received: " << data_line;
+        if (data_line.length() >= SCMSG_MESSAGE_LENGTH) {
+            QTextStream myteststream(&data_line);
+            myteststream >> tmp >> param1 >> param2;
+            message_code = static_cast<SERVER_CLIENT_MESSAGE>(tmp);
+            qInfo() << "Message received: " << message_code << " " << param1 << " " << param2;
+            switch(message_code) {
+            case SCMSG_WELCOME:
+                this->setConnectionStatus(CONNECTED);
+                debugSignal("Connected to server");
+                qInfo() << "Connected to server";
+                break;
+            case SCMSG_WAITING_FOR_OPPONENT:
+                this->setConnectionStatus(IN_ROOM);
+                debugSignal("Waiting for the opponent");
+                qInfo() << "Waiting for the opponent";
+                break;
+            case SCMSG_YOU_PLAY_LIGHT:
+                this->setConnectionStatus(IN_GAME_LIGHT);
+                startGameSignal(GLOBAL::COLOR::LIGHT);
+                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+                debugSignal("Game starting. You are playing light");
+                qInfo() << "Game starting. You are playing light";
+                break;
+            case SCMSG_YOU_PLAY_DARK:
+                this->setConnectionStatus(IN_GAME_DARK);
+                startGameSignal(GLOBAL::COLOR::DARK);
+                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+                debugSignal("Game starting. You are playing dark");
+                qInfo() << "Game starting. You are playing dark";
+                break;
+            case SCMSG_GAME_ERROR:
+                this->lastGameError = static_cast<GLOBAL::GAME_ERROR>(param1);
+                this->gameErrorSignal(static_cast<GLOBAL::GAME_ERROR>(param1));
+                debugSignal("Game error " + QString(param1));
+                qInfo() << "Game error " << param1;
+                break;
+            case SCMSG_LIGHT_TURN:
+                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+                debugSignal("Light player turn");
+                qInfo() << "Light player turn";
+                break;
+            case SCMSG_DARK_TURN:
+                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_DARK);
+                debugSignal("Dark player turn");
+                qInfo() << "Dark player turn";
+                break;
+            case SCMSG_PIECE_MOVED:
+                this->gamePieceMovedSignal(param1, param2);
+                debugSignal("Piece moved from " + QString(param1) + " to " + QString(param2));
+                qInfo() << "Piece moved from " << param1 << " to " << param2;
+                break;
+            case SCMSG_PIECE_CAPTURED:
+                this->gamePieceMovedSignal(param1, -1);
+                debugSignal("Piece captured from " + QString(param1));
+                qInfo() << "Piece captured from " << param1;
+                break;
+            case SCMSG_PROMOTE:
+                gamePromotePieceSignal(param1);
+                debugSignal("Promoting " + QString(param1));
+                qInfo() << "Promoting " << param1;
+                break;
+            case SCMSG_LIGHT_WON:
+                debugSignal("Light player won!");
+                qInfo() << "Light player won!";
+                break;
+            case SCMSG_DARK_WON:
+                debugSignal("Dark player won!");
+                qInfo() << "Dark player won!";
+                break;
+            case SCMSG_OPPONENT_LEFT:
+                debugSignal("Your opponent left");
+                qInfo() << "Your opponent left";
+                break;
+            default:
+                debugSignal("Unknown command " + QString(message_code));
+                qInfo() << "Unknown command " << message_code;
+                break;
+            }
         }
     }
 }

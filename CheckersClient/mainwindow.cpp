@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(server_connection, &TcpClient::setConnectionStatusSignal, this, &MainWindow::showConnectionStatus);
     connect(server_connection, &TcpClient::gameStatusSignal, this, &MainWindow::showGameStatus);
     connect(server_connection, &TcpClient::gameErrorSignal, this, &MainWindow::showGameError);
+    connect(server_connection, &TcpClient::debugSignal, this, &MainWindow::debugSlot);
 
 }
 
@@ -87,4 +88,8 @@ void MainWindow::showGameError(GLOBAL::GAME_ERROR error) {
         ui->errorMessage->show();
         break;
     }
+}
+
+void MainWindow::debugSlot(QString message) {
+    ui->debugBox->append(message + '\n');
 }

@@ -41,6 +41,9 @@ void Game::startGame(GLOBAL::COLOR player_color) {
     this->player_color = player_color;
     placePiecesAtStart();
     for (int i=0; i < ONE_COLOR_PIECES; ++i) {
+        // Set the piece type to man
+        this->light_pieces[i]->setPieceType(GLOBAL::PIECE_TYPE::MAN);
+        this->dark_pieces[i]->setPieceType(GLOBAL::PIECE_TYPE::MAN);
         // Show pieces
         this->light_pieces[i]->setVisible(true);
         this->dark_pieces[i]->setVisible(true);
@@ -94,28 +97,29 @@ void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
         int from_field = picked_up_piece->getField();
         int to_field = getFieldNumber(mouse_x, mouse_y);
         if (to_field == -1) {
-            picked_up_piece->setPos(getFieldPosition(from_field));
+            picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
         }
         else {
             this->server_connection->movePiece(from_field, to_field);
-            // Wait for the response from the server
-            QTimer timer;
-            timer.setSingleShot(true);
-            QEventLoop loop;
-            connect( this->server_connection, &TcpClient::gameErrorSignal, &loop, &QEventLoop::quit );
-            connect( &timer, &QTimer::timeout, &loop, &QEventLoop::quit );
-            timer.start(10000);
-            loop.exec();
-            if(timer.isActive()) {
-                if (this->server_connection->getLastGameError() == GLOBAL::GAME_ERROR::NO_ERROR) {
-                    picked_up_piece->setPosition(getFieldPosition(to_field), to_field);
-                }
-                else {
-                    picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
-                }
-            }
-            else
-                qDebug("timeout");
+            this->picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
+//            // Wait for the response from the server
+//            QTimer timer;
+//            timer.setSingleShot(true);
+//            QEventLoop loop;
+//            connect( this->server_connection, &TcpClient::gameErrorSignal, &loop, &QEventLoop::quit );
+//            connect( &timer, &QTimer::timeout, &loop, &QEventLoop::quit );
+//            timer.start(10000);
+//            loop.exec();
+//            if(timer.isActive()) {
+//                if (this->server_connection->getLastGameError() == GLOBAL::GAME_ERROR::NO_ERROR) {
+//                    picked_up_piece->setPosition(getFieldPosition(to_field), to_field);
+//                }
+//                else {
+//                    picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
+//                }
+//            }
+//            else
+//                qDebug("timeout");
         }
         this->picked_up_piece->setZValue(10);
         this->picked_up_piece = nullptr;
@@ -177,7 +181,7 @@ int Game::getFieldNumber(QPointF position) {
 
 void Game::gamePieceMovedSlot(int from_field, int to_field) {
     GamePiece *piece_to_move = nullptr;
-    for (int i=0; i < FIELDS; ++i) {
+    for (int i=0; i < ONE_COLOR_PIECES; ++i) {
         if (light_pieces[i]->getField() == from_field) {
             piece_to_move = light_pieces[i];
             break;
@@ -189,7 +193,6 @@ void Game::gamePieceMovedSlot(int from_field, int to_field) {
     }
     if (piece_to_move != nullptr) {
         if (to_field == -1) { // The piece was captured
-            qInfo() << "Capturing " << to_field;
             piece_to_move->capture();
         }
         else {
@@ -200,7 +203,7 @@ void Game::gamePieceMovedSlot(int from_field, int to_field) {
 
 void Game::gamePromotePieceSlot(int field) {
     GamePiece *piece_to_promote = nullptr;
-    for (int i=0; i < FIELDS; ++i) {
+    for (int i=0; i < ONE_COLOR_PIECES; ++i) {
         if (light_pieces[i]->getField() == field) {
             piece_to_promote = light_pieces[i];
             break;

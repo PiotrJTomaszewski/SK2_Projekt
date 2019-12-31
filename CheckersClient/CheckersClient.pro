@@ -42,6 +42,7 @@ HEADERS += \
         globals.h \
         mainwindow.h \
         room.h \
+        server_client_messages.h \
         serverconnectionobject.h \
         tcpClient.h
 

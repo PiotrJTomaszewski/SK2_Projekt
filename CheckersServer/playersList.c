@@ -29,10 +29,18 @@ struct PLAYER *player_list_add(struct PLAYERS_LIST *list, int player_fd) {
     }
     // Allocate memory for the new client
     struct PLAYER *player = malloc(sizeof(struct PLAYER));
+    player_init(player);
     player->file_descriptor = player_fd;
     list->players[list->number_of_players] = player;
     list->number_of_players++;
     return player;
+}
+
+void player_list_delete_by_fd(struct PLAYERS_LIST *list, int player_fd) {
+    int id = player_get_index_by_fd(list, player_fd);
+    player_free_memory(list->players[id]);
+    list->players[id] = list->players[list->number_of_players-1];
+    list->number_of_players--;
 }
 
 struct ROOM *player_list_get_free_room(struct PLAYERS_LIST *list) {
@@ -48,6 +56,15 @@ struct PLAYER *player_get_by_fd(struct PLAYERS_LIST *list, int fd) {
     for (unsigned i = 0; i < list->number_of_players; ++i) {
         if (list->players[i]->file_descriptor == fd) {
             return list->players[i];
+        }
+    }
+    return NULL;
+}
+
+int player_get_index_by_fd(struct PLAYERS_LIST *list, int fd) {
+    for (unsigned i = 0; i < list->number_of_players; ++i) {
+        if (list->players[i]->file_descriptor == fd) {
+            return i;
         }
     }
     return NULL;

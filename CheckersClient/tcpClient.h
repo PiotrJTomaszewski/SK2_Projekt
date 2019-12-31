@@ -38,6 +38,7 @@ signals:
     void gameErrorSignal(GLOBAL::GAME_ERROR error);
     void gamePieceMovedSignal(int from_field, int to_field);
     void gamePromotePieceSignal(int field);
+    void debugSignal(QString message);
 };
 
 #endif // TCPCLIENT_H

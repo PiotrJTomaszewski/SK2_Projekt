@@ -1,6 +1,16 @@
 #include <malloc.h>
 #include "player.h"
 
+void player_init(struct PLAYER *player) {
+    player->buffer = malloc(sizeof(struct CIRC_BUFFER));
+    circ_buffer_init(player->buffer, 128);
+}
+
+void player_free_memory(struct PLAYER *player) {
+    circ_buffer_free_memory(player->buffer);
+    free(player->buffer);
+}
+
 void player_assign_room(struct PLAYER *player, struct ROOM *room) {
     player->room = room;
     player->is_in_room = 1;

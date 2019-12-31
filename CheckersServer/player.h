@@ -1,5 +1,6 @@
 #ifndef CHECKERSSERVER_CLIENT_H
 #define CHECKERSSERVER_CLIENT_H
+#include "circuralBuffer.h"
 #include "room.h"
 
 struct PLAYER {
@@ -7,7 +8,12 @@ struct PLAYER {
     int is_in_room;
     struct ROOM *room;
     enum GAME_PIECE_COLOR player_color;
+    struct CIRC_BUFFER *buffer;
 };
+
+void player_init(struct PLAYER *player);
+
+void player_free_memory(struct PLAYER *player);
 
 void player_assign_room(struct PLAYER *player, struct ROOM *room);
 
