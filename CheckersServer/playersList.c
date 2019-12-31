@@ -1,5 +1,6 @@
 #include "playersList.h"
 #include <malloc.h>
+#include <poll.h>
 
 #define PLAYERS_LIST_INITIAL_SIZE 10
 
@@ -38,8 +39,10 @@ struct PLAYER *player_list_add(struct PLAYERS_LIST *list, int player_fd) {
 
 void player_list_delete_by_fd(struct PLAYERS_LIST *list, int player_fd) {
     int id = player_get_index_by_fd(list, player_fd);
+    // Mark that fact in the room info also
+    player_leave_room(list->players[id]);
     player_free_memory(list->players[id]);
-    list->players[id] = list->players[list->number_of_players-1];
+    list->players[id] = list->players[list->number_of_players - 1];
     list->number_of_players--;
 }
 
@@ -52,7 +55,7 @@ struct ROOM *player_list_get_free_room(struct PLAYERS_LIST *list) {
     return NULL;
 }
 
-struct PLAYER *player_get_by_fd(struct PLAYERS_LIST *list, int fd) {
+struct PLAYER *player_list_get_by_fd(struct PLAYERS_LIST *list, int fd) {
     for (unsigned i = 0; i < list->number_of_players; ++i) {
         if (list->players[i]->file_descriptor == fd) {
             return list->players[i];
@@ -67,5 +70,17 @@ int player_get_index_by_fd(struct PLAYERS_LIST *list, int fd) {
             return i;
         }
     }
-    return NULL;
+    return -1;
+}
+
+struct pollfd *player_list_get_pollfds(struct PLAYERS_LIST *list, int server_fd, unsigned *number_of_clients) {
+    struct pollfd *pollfds = malloc((list->number_of_players + 1) * sizeof(struct pollfd));
+    for (unsigned i = 0; i < list->number_of_players; ++i) {
+        pollfds[i].fd = list->players[i]->file_descriptor;
+        pollfds[i].events = POLLIN;
+    }
+    pollfds[list->number_of_players].fd = server_fd;
+    pollfds[list->number_of_players].events = POLLIN;
+    *number_of_clients = list->number_of_players + 1;
+    return pollfds;
 }

@@ -61,7 +61,6 @@ void server_game_check_promote_piece(struct ROOM *room, int field) {
 }
 
 void server_game_start_game(struct ROOM *room) {
-    srand((unsigned) time(NULL));
     printf("DEBUG: Game starting\n");
     place_pieces(room->game_instance);
     if (rand() % 2) {
@@ -75,4 +74,6 @@ void server_game_start_game(struct ROOM *room) {
         ser_cli_com_send_message(room->player_one->file_descriptor, SCMSG_YOU_PLAY_DARK, 0, 0);
         ser_cli_com_send_message(room->player_two->file_descriptor, SCMSG_YOU_PLAY_LIGHT, 0, 0);
     }
+    ser_cli_com_send_message(room->player_one->file_descriptor, SCMSG_LIGHT_TURN, 0, 0);
+    ser_cli_com_send_message(room->player_two->file_descriptor, SCMSG_LIGHT_TURN, 0, 0);
 }

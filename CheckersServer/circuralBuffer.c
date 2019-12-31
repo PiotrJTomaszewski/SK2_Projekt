@@ -6,7 +6,7 @@ void circ_buffer_init(struct CIRC_BUFFER *circ_buffer, size_t size) {
     circ_buffer->head = 0;
     circ_buffer->tail = 0;
     circ_buffer->to_read = 0;
-    return circ_buffer;
+//    return circ_buffer;
 }
 
 void circ_buffer_free_memory(struct CIRC_BUFFER *circ_buffer) {

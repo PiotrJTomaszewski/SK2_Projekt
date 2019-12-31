@@ -5,7 +5,6 @@
 
 struct PLAYER {
     int file_descriptor;
-    int is_in_room;
     struct ROOM *room;
     enum GAME_PIECE_COLOR player_color;
     struct CIRC_BUFFER *buffer;

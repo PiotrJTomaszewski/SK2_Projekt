@@ -2,10 +2,10 @@
 #define CHECKERSSERVER_CLIENTSLIST_H
 
 #include <poll.h>
+#include <stdbool.h>
 
 struct CLIENTS_LIST {
     struct pollfd *clients_fd;
-    struct CIRC_BUFFER *circular_buffers;
     unsigned number_of_clients;
     unsigned current_clients_array_size;
 };
