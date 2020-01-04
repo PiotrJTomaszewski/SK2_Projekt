@@ -74,6 +74,9 @@ struct GAME_INSTANCE {
     enum GAME_STATE game_state;
 };
 
+/**
+ * A structure representing the result of a move
+ */
 struct MOVE_RESULT {
     enum GAME_ERROR move_error;
     int end_tour;
@@ -101,6 +104,11 @@ void place_pieces(struct GAME_INSTANCE *instance);
 struct MOVE_RESULT
 move_piece(struct GAME_INSTANCE *instance, int from_field, int to_field, enum GAME_PIECE_COLOR player_color);
 
+/**
+ * Checks if the piece can be promoted to king and (if it indeed can be) promotes it to a king
+ * @param instance A pointer to the game instance
+ * @param field A field on which the piece in question stands
+ */
 int check_and_promote(struct GAME_INSTANCE *instance, int field);
 
 /**
@@ -113,6 +121,11 @@ int check_and_promote(struct GAME_INSTANCE *instance, int field);
  */
 enum GAME_PIECE_COLOR _get_piece_color(struct GAME_INSTANCE *instance, int row, int col);
 
+/**
+ * Checks if the game should end and marks the game as ended if needed
+ * @param instance A pointer to the game instance structure.
+ * @return true if the game should end, false otherwise
+ */
 bool is_game_end(struct GAME_INSTANCE *instance);
 
 // DEBUG ONLY FUNCTIONS

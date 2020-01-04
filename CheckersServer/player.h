@@ -4,6 +4,9 @@
 #include "circuralBuffer.h"
 #include "room.h"
 
+/**
+ * A structure representing a player
+ */
 struct PLAYER {
     int file_descriptor;
     enum GAME_PIECE_COLOR player_color;

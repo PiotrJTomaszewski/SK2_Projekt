@@ -84,7 +84,7 @@ int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE m
             }
         } else if (errno != EAGAIN || errno != EWOULDBLOCK) {
             perror("Error while sending a message to player");
-            error_occured = 1;
+            error_occured = -1;
             break;
         }
     }

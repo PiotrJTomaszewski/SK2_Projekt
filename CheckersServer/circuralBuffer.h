@@ -39,24 +39,25 @@ void circ_buffer_delete(struct CIRC_BUFFER *circ_buffer);
 
 /**
  * Read the next byte from the circular buffer.
- * @param circ_buffer
- * @return
+ * @param circ_buffer A buffer to read from
+ * @return A structure containing the result
+ * @see CIRC_BUFFER_RESULT
  */
 struct CIRC_BUFFER_RESULT circ_buffer_read_byte(struct CIRC_BUFFER *circ_buffer);
 
 /**
  * Write a byte to the circular buffer
- * @param circ_buffer
- * @param byte
- * @return
+ * @param circ_buffer A buffer to write to
+ * @param byte A byte to write
+ * @return 0 on success, -1 on error
  */
 int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte);
 
 /**
  * Writes given number of bytes to the buffer.
- * @param circ_buffer
- * @param bytes
- * @param number_of_bytes
+ * @param circ_buffer A buffer to write to
+ * @param bytes Array of bytes to write
+ * @param number_of_bytes A number of bytes to write
  * @return 0 on success, -1 on error
  */
 int circ_buffer_write_bytes(struct CIRC_BUFFER *circ_buffer, char *bytes, unsigned number_of_bytes);

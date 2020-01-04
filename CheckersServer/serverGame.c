@@ -51,7 +51,7 @@ bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, in
     }
     return false;
 }
-
+// TODO: Error handling
 void server_game_start_game(struct ROOM *room) {
     printf("DEBUG: Game starting\n");
     place_pieces(room->game_instance);
