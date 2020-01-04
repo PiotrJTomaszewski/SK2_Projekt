@@ -8,24 +8,10 @@
 #include "messages.h"
 #include "player.h"
 
-struct PARSED_MESSAGE_STRUCT ser_cli_com_recv_and_parse(struct PLAYER *player) {
-    enum SER_CLI_COM_RESULT recv_result;
-    struct PARSED_MESSAGE_STRUCT parsed_message;
-    recv_result = ser_cli_com_receive(player);
-    if (recv_result == SER_CLI_COM_SOCKET_CLOSED) {
-        printf("Message receive: Socket closed\n");
-        parsed_message.result = SER_CLI_COM_SOCKET_CLOSED;
-        return parsed_message;
-    }
-    parsed_message = ser_cli_com_parse(player);
-    return parsed_message;
-}
-
 enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player) {
     ssize_t n;
     enum SER_CLI_COM_RESULT result = SER_CLI_COM_NO_ERROR;
     char *local_buf = malloc(SCMSG_MESSAGE_LENGTH + 1);
-    pthread_mutex_lock(&player->fd_lock);
     bool run_flag = true;
     while (run_flag) {
         n = recv(player->file_descriptor, local_buf, SCMSG_MESSAGE_LENGTH, MSG_DONTWAIT);
@@ -45,34 +31,30 @@ enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player) {
             }
         }
     }
-    pthread_mutex_unlock(&player->fd_lock);
     return result;
 }
 
-struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct PLAYER *player) {
+struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player) {
     char local_buf[SCMSG_MESSAGE_LENGTH + 1];
     int read_bytes = 0;
     bool message_read = false;
     struct PARSED_MESSAGE_STRUCT result;
-    result.result = SER_CLI_NOT_ENOUGH_TO_PARSE;
-    pthread_mutex_lock(&player->fd_lock);
+    result.error = 1;
+    // Check if there is anything in the buffer
     if (player->buffer->to_read >= SCMSG_MESSAGE_LENGTH) {
         // Read data into local buffer
         while (!message_read) {
             local_buf[read_bytes] = circ_buffer_read_byte(player->buffer).byte;
-//            printf("%d %c\n", local_buf[read_bytes], local_buf[read_bytes]);
-            if (local_buf[read_bytes] == '\n')
-                message_read = true;
+            if (local_buf[read_bytes] == '\n') message_read = true;
             ++read_bytes;
         }
     }
-    pthread_mutex_unlock(&player->fd_lock);
-    if (read_bytes > 0) {
+    if (read_bytes > 0) {  // If a message was read
         // Parse data
         int tmp;
         sscanf(local_buf, "%02d %02d %02d\n", &tmp, &result.param1, &result.param2);
         result.message_code = (enum SERVER_CLIENT_MESSAGE) tmp;
-        result.result = SER_CLI_COM_NO_ERROR;
+        result.error = 0;
     }
     return result;
 }
@@ -90,7 +72,6 @@ int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE m
     size_t bytes_left_to_send = SCMSG_MESSAGE_LENGTH;
     int bytes_sent = 0;
     ssize_t n;
-    pthread_mutex_lock(&player->fd_lock);
     while (bytes_left_to_send > 0) {
         n = send(player->file_descriptor, buffer, bytes_left_to_send, 0);
         if (n > 0) {
@@ -107,6 +88,5 @@ int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE m
             break;
         }
     }
-    pthread_mutex_unlock(&player->fd_lock);
     return error_occured;
 }

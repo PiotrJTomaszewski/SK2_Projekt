@@ -75,23 +75,32 @@ void *_room_thread(void *room_thread_data_param) {
         } else {
             for (unsigned i = 0; i < 2; ++i) {
                 if (poll_clients[i].revents & POLLIN) {
-                    struct PARSED_MESSAGE_STRUCT parsed_message = ser_cli_com_recv_and_parse(players[i]);
-                    if (parsed_message.result == SER_CLI_COM_NO_ERROR) { // A message was received
-                        switch (parsed_message.message_code) {
-                            case SCMSG_MOVE_PIECE:
-                                server_game_move_piece(room, players[i], parsed_message.param1, parsed_message.param2);
-                                if (server_game_check_if_the_game_has_ended(room)) { // The game has ended
-                                    run_flag = false;
-                                }
-                                break;
-                            case SCMSG_GOODBYE:  // Player wants to disconnect. Inform his opponent
-                                ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
-                                run_flag = false;
-                                break;
-                            default:
-                                break;
-                        }
-                    } else if (parsed_message.result == SER_CLI_COM_SOCKET_CLOSED) {  // Player has left the server
+                    // Receive all available bytes from the player and put it into the buffer
+                    enum SER_CLI_COM_RESULT result = ser_cli_com_receive(players[i]);
+                    struct PARSED_MESSAGE_STRUCT parsed_message;
+                    if (result == SER_CLI_COM_NO_ERROR) {
+                        // Parse all available messages
+                        do {
+                            parsed_message = ser_cli_com_parse_next(players[i]);
+                            if (parsed_message.error == 0) { // A message was received
+                                switch (parsed_message.message_code) {
+                                    case SCMSG_MOVE_PIECE:
+                                        server_game_move_piece(room, players[i], parsed_message.param1,
+                                                               parsed_message.param2);
+                                        if (server_game_check_if_the_game_has_ended(room)) { // The game has ended
+                                            run_flag = false;
+                                        }
+                                        break;
+                                    case SCMSG_GOODBYE:  // Player wants to disconnect. Inform his opponent
+                                        ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
+                                        run_flag = false;
+                                        break;
+                                    default:
+                                        break;
+                                } // switch
+                            } // Check if message was received
+                        } while (parsed_message.error == 0);
+                    } else if (result == SER_CLI_COM_SOCKET_CLOSED) {  // Player has left the server
                         run_flag = false;
                         // Inform the other player about the fact
                         ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);

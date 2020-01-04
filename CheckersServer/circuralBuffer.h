@@ -17,8 +17,6 @@ struct CIRC_BUFFER_RESULT {
     bool error;
 };
 
-//void circ_buffer_init(struct CIRC_BUFFER *circ_buffer, size_t size);
-
 /**
  * Allocates memory and creates a new instance of the circular buffer.
  * @param size A size of the buffer.
@@ -33,13 +31,8 @@ struct CIRC_BUFFER *circ_buffer_create_new(size_t size);
 void circ_buffer_delete(struct CIRC_BUFFER *circ_buffer);
 
 
-void circ_buffer_free_memory(struct CIRC_BUFFER *circ_buffer);
 
 struct CIRC_BUFFER_RESULT circ_buffer_read_byte(struct CIRC_BUFFER *circ_buffer);
-
-struct CIRC_BUFFER_RESULT circ_buffer_peek_byte(struct CIRC_BUFFER *circ_buffer);
-
-struct CIRC_BUFFER_RESULT circ_buffer_peek_head_byte(struct CIRC_BUFFER *circ_buffer);
 
 int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte);
 
@@ -52,6 +45,5 @@ int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte);
  */
 int circ_buffer_write_bytes(struct CIRC_BUFFER *circ_buffer, char *bytes, unsigned number_of_bytes);
 
-size_t circ_buffer_get_free_space(struct CIRC_BUFFER *circ_buffer);
 
 #endif //CHECKERSSERVER_CIRCURALBUFFER_H

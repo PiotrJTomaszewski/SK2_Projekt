@@ -190,7 +190,7 @@ int check_and_promote(struct GAME_INSTANCE *instance, int field) {
 
 enum GAME_PIECE_COLOR _get_piece_color(struct GAME_INSTANCE *instance, int row, int col) {
     enum GAME_PIECE_COLOR color = COLOR_NO_COLOR;
-    if ((row < 0 || row > GAME_BOARD_HEIGHT) || (col < 0 || col > GAME_BOARD_WIDTH))
+    if ((row < 0 || row >= GAME_BOARD_HEIGHT) || (col < 0 || col >= GAME_BOARD_WIDTH))
         color = COLOR_ERROR;
     else if (instance->board[row][col] > 0)
         color = COLOR_DARK;
@@ -273,4 +273,5 @@ void show_board(struct GAME_INSTANCE *instance) {
         }
         printf("\n");
     }
+    printf("\n");
 }

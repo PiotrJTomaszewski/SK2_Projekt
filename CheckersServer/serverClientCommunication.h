@@ -11,21 +11,31 @@ enum SER_CLI_COM_RESULT {
     SER_CLI_COM_SOCKET_CLOSED,
     SER_CLI_COM_FULL_BUFFER,
     SER_CLI_COM_OTHER_ERROR,
-    SER_CLI_NOT_ENOUGH_TO_PARSE
+//    SER_CLI_NOT_ENOUGH_TO_PARSE
 };
 
 struct PARSED_MESSAGE_STRUCT {
-    enum SER_CLI_COM_RESULT result;
+    int error;
     enum SERVER_CLIENT_MESSAGE message_code;
     int param1;
     int param2;
 };
 
-struct PARSED_MESSAGE_STRUCT ser_cli_com_recv_and_parse(struct PLAYER *player);
+//struct PARSED_MESSAGE_STRUCT ser_cli_com_recv_and_parse(struct PLAYER *player);
 
+/**
+ * Receives all available bytes from client and puts it into the buffer.
+ * @param player
+ * @return
+ */
 enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player);
 
-struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct PLAYER *player);
+/**
+ * Parses the next message from buffer.
+ * @param player
+ * @return
+ */
+struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player);
 
 /**
  * Sends the message to the player.
@@ -36,10 +46,5 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct PLAYER *player);
  * @return
  */
 int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2);
-
-/*
- * Executes the action that was received from the client.
- */
-void ser_cli_com_take_action(struct ROOM *room, struct PLAYER *player, struct PARSED_MESSAGE_STRUCT *parsed_message);
 
 #endif //CHECKERSSERVER_SERVERCLIENTCOMMUNICATION_H
