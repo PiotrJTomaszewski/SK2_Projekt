@@ -1,5 +1,6 @@
 #ifndef CHECKERSSERVER_CLIENT_H
 #define CHECKERSSERVER_CLIENT_H
+#include <pthread.h>
 #include "circuralBuffer.h"
 #include "room.h"
 
@@ -8,11 +9,21 @@ struct PLAYER {
     struct ROOM *room;
     enum GAME_PIECE_COLOR player_color;
     struct CIRC_BUFFER *buffer;
+    pthread_mutex_t fd_lock;
 };
 
-void player_init(struct PLAYER *player);
+//void player_init(struct PLAYER *player);
 
-void player_free_memory(struct PLAYER *player);
+/**
+ * Allocates memory and creates a new instance of the player.
+ * @param player_fd A file descriptor of the player.
+ * @return A new player instance or NULL on error.
+ */
+struct PLAYER *player_create_new(int player_fd);
+
+void player_delete(struct PLAYER *player);
+
+//void player_free_memory(struct PLAYER *player);
 
 void player_assign_room(struct PLAYER *player, struct ROOM *room);
 

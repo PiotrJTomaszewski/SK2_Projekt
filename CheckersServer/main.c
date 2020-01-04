@@ -4,8 +4,11 @@
 #include "test.h"
 #include "server.h"
 
+#include <time.h>
+
 #include "circuralBuffer.h"
 #include <string.h>
+
 
 int main() {
 //    struct GAME_INSTANCE *instance;
@@ -18,6 +21,7 @@ int main() {
 //    show_board(instance);
 //    free(instance);
 //    run_all_tests();
+    srand((unsigned) time(NULL));
     server_run(1234);
 
 //    struct CIRC_BUFFER *buffer;

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "player.h"
-#include "clientsList.h"
 #include "messages.h"
 
 enum SER_CLI_COM_RESULT {
@@ -26,12 +25,21 @@ void ser_cli_com_init();
 
 enum SER_CLI_COM_RESULT ser_cli_com_get_and_parse(struct PLAYER *player);
 
-enum SER_CLI_COM_RESULT ser_cli_com_receive(int fd, struct CIRC_BUFFER *buffer);
+enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player);
 
-struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct CIRC_BUFFER *buffer);
+struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct PLAYER *player);
 
+/**
+ * Sends the message to the player.
+ * @param player The player
+ * @param message_code A message to send
+ * @param param1 The first parameter of the message
+ * @param param2 The second parameter of the message
+ * @return The structure holding the result of communication
+ * @see SER_CLI_COM_RESULT
+ */
 enum SER_CLI_COM_RESULT
-ser_cli_com_send_message(int client_fd, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2);
+ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2);
 
 /*
  * Executes the action that was received from the client.

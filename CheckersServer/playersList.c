@@ -5,75 +5,103 @@
 #define PLAYERS_LIST_INITIAL_SIZE 10
 
 
-void player_list_init(struct PLAYERS_LIST *list) {
+void players_list_init(struct PLAYERS_LIST *list) {
     list->current_players_array_size = PLAYERS_LIST_INITIAL_SIZE;
-    list->players = malloc(PLAYERS_LIST_INITIAL_SIZE * sizeof(struct PLAYER *)); // TODO: Check for error
+    list->players = malloc(PLAYERS_LIST_INITIAL_SIZE * sizeof(struct PLAYER *));
+    if (list->players == NULL) {
+        perror("Critical error while creating players list");
+    }
     list->number_of_players = 0;
+    if (pthread_mutex_init(&list->players_list_lock, NULL) != 0)
+    {
+        perror("Error init players list mutex");
+    }
 }
 
-int resize_player_array(struct PLAYERS_LIST *list) {
+/**
+ * Resize the players list, doubling it's capacity
+ * @param list A pointer to the players list structure
+ * @return 0 on success, -1 on error
+ */
+int _players_list_resize(struct PLAYERS_LIST *list) {
     printf("Allocating more memory for the clients list\n");
-    // If the list is too small, allocate twice as much memory
+    // Double the allocated memory
     unsigned new_size = 2 * list->current_players_array_size;
     list->players = realloc(list->players, new_size * sizeof(struct PLAYER *));
-    if (list->players == NULL) {
-        printf("Error while allocating memory\n");
+    if (list->players != NULL) {
+        list->current_players_array_size = new_size;
+        return 0;
+    } else {
+        perror("Critical error while expanding players list");
         return -1;
     }
-    list->current_players_array_size = new_size;
-    return 0;
 }
 
-struct PLAYER *player_list_add(struct PLAYERS_LIST *list, int player_fd) {
-    if (list->number_of_players >= list->current_players_array_size) {
-        resize_player_array(list);
+struct PLAYER *players_list_add_new(struct PLAYERS_LIST *list, int player_fd) {
+    // Create a new player instance
+    struct PLAYER *player = player_create_new(player_fd);
+    if (player != NULL) {
+        // Add the new player to the list
+        pthread_mutex_lock(&list->players_list_lock);
+        // Check if there is free space to put the client. If not resize the array
+        if (list->number_of_players >= list->current_players_array_size) {
+            _players_list_resize(list);
+        }
+        list->players[list->number_of_players] = player;
+        list->number_of_players++;
+        pthread_mutex_unlock(&list->players_list_lock);
+    } else {
+        perror("Error while allocating memory for the new player");
     }
-    // Allocate memory for the new client
-    struct PLAYER *player = malloc(sizeof(struct PLAYER));
-    player_init(player);
-    player->file_descriptor = player_fd;
-    list->players[list->number_of_players] = player;
-    list->number_of_players++;
     return player;
 }
 
-void player_list_delete_by_fd(struct PLAYERS_LIST *list, int player_fd) {
-    int id = player_get_index_by_fd(list, player_fd);
-    // Mark that fact in the room info also
-    player_leave_room(list->players[id]);
-    player_free_memory(list->players[id]);
-    list->players[id] = list->players[list->number_of_players - 1];
-    list->number_of_players--;
-}
-
-struct ROOM *player_list_get_free_room(struct PLAYERS_LIST *list) {
+struct ROOM *players_list_get_free_room(struct PLAYERS_LIST *list) {
+    struct ROOM *free_room = NULL;
+//    pthread_mutex_lock(&list->players_list_lock); // TODO: For now this conflicts with server_game_join_room
     for (unsigned i = 0; i < list->number_of_players; ++i) {
         if (player_is_in_free_room(list->players[i])) {
-            return list->players[i]->room;
+            free_room = list->players[i]->room;
+            break;
         }
     }
-    return NULL;
+//    pthread_mutex_unlock(&list->players_list_lock);
+    return free_room;
 }
 
-struct PLAYER *player_list_get_by_fd(struct PLAYERS_LIST *list, int fd) {
+struct PLAYER *players_list_get_by_fd(struct PLAYERS_LIST *list, int fd) {
+    struct PLAYER *player = NULL;
+    pthread_mutex_lock(&list->players_list_lock);
     for (unsigned i = 0; i < list->number_of_players; ++i) {
         if (list->players[i]->file_descriptor == fd) {
-            return list->players[i];
+            player = list->players[i];
+            break;
         }
     }
-    return NULL;
+    pthread_mutex_unlock(&list->players_list_lock);
+    return player;
 }
 
-int player_get_index_by_fd(struct PLAYERS_LIST *list, int fd) {
+int _players_list_get_player_index(struct PLAYERS_LIST *list, struct PLAYER *player) {
     for (unsigned i = 0; i < list->number_of_players; ++i) {
-        if (list->players[i]->file_descriptor == fd) {
+        if (list->players[i] == player) {
             return i;
         }
     }
     return -1;
 }
 
-struct pollfd *player_list_get_pollfds(struct PLAYERS_LIST *list, int server_fd, unsigned *number_of_clients) {
+void players_list_remove_player(struct PLAYERS_LIST *list, struct PLAYER *player) {
+    pthread_mutex_lock(&list->players_list_lock);
+    int id = _players_list_get_player_index(list, player);
+    player_leave_room(list->players[id]);
+    player_delete(player);
+    list->players[id] = list->players[list->number_of_players - 1];
+    list->number_of_players--;
+    pthread_mutex_unlock(&list->players_list_lock);
+}
+
+struct pollfd *players_list_get_pollfds(struct PLAYERS_LIST *list, int server_fd, unsigned *number_of_clients) {
     struct pollfd *pollfds = malloc((list->number_of_players + 1) * sizeof(struct pollfd));
     for (unsigned i = 0; i < list->number_of_players; ++i) {
         pollfds[i].fd = list->players[i]->file_descriptor;

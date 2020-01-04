@@ -2,51 +2,56 @@
 #include "room.h"
 #include "player.h"
 
-void room_init(struct ROOM *room) {
-    room->game_instance = malloc(sizeof(struct GAME_INSTANCE));
-    room->number_of_players = 0;
-    room->player_one = NULL;
-    room->player_two = NULL;
-    room->game_instance->game_state = STATE_NO_GAME;
+struct ROOM *room_create_new() {
+    struct ROOM *room = malloc(sizeof(struct ROOM));
+    if (room != NULL) {
+        room->game_instance = malloc(sizeof(struct GAME_INSTANCE));
+        if (room->game_instance != NULL) {
+            room->number_of_players = 0;
+            room->player_one = NULL;
+            room->player_two = NULL;
+            room->game_instance->game_state = STATE_NO_GAME;
+            if (pthread_mutex_init(&room->room_lock, NULL) != 0)
+            {
+                perror("Error init room mutex");
+                return NULL;
+            }
+        } else {
+            perror("Error while allocating memory for the room");
+            free(room);
+            return NULL;
+        }
+    } else {
+        perror("Error while allocating memory for the room");
+    }
+    return room;
 }
 
-void room_free_memory(struct ROOM *room) {
-    printf("Freeing room memory\n");
+void room_delete(struct ROOM *room) {
     free(room->game_instance);
+    free(room);
 }
 
-int room_get_player_one_fd(struct ROOM *room) {
+int room_assign_player(struct ROOM *room, struct PLAYER *player) {
+    int was_player_assigned = -1;
+    pthread_mutex_lock(&room->room_lock);
+    if (room->player_one == NULL) {
+        room->player_one = player;
+        room->number_of_players++;
+        was_player_assigned = 0;
+    } else if (room->player_two == NULL) {
+        room->player_two = player;
+        room->number_of_players++;
+        was_player_assigned = 0;
+    }
+    pthread_mutex_unlock(&room->room_lock);
+    return was_player_assigned;
+}
+
+struct PLAYER *room_get_other_player(struct ROOM *room, struct PLAYER *player) {
     if (room == NULL)
-        return -1;
-    if (room->player_one != NULL)
-        return room->player_one->file_descriptor;
-    else
-        return -1;
+        return NULL;
+    if (player == room->player_one)
+        return room->player_two;
+    return room->player_two;
 }
-
-int room_get_player_two_fd(struct ROOM *room) {
-    if (room == NULL)
-        return -1;
-    if (room->player_one != NULL)
-        return room->player_two->file_descriptor;
-    else
-        return -1;
-}
-
-int room_get_other_player_fd(struct ROOM *room, int current_player_fd) {
-    if (room == NULL)
-        return -1;
-    if (current_player_fd == -1)
-        return -1;
-    if (room->player_one != NULL)
-        if (room->player_one->file_descriptor != current_player_fd)
-            return room->player_one->file_descriptor;
-    if (room->player_two != NULL)
-        if (room->player_two->file_descriptor != current_player_fd)
-            return room->player_two->file_descriptor;
-    return -1;
-}
-
-//void room_start_game(struct ROOM *room) {
-//    room->game_instance = malloc(sizeof(struct GAME_INSTANCE));
-//}
