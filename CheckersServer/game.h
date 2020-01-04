@@ -8,6 +8,8 @@
 #ifndef CHECKERSSERVER_GAME_H
 #define CHECKERSSERVER_GAME_H
 
+#include <stdbool.h>
+
 /**
  * @brief Width of the game board.
  */
@@ -29,7 +31,7 @@ enum GAME_PIECE_TYPE {
  * @brief Available piece / player colors.
  */
 enum GAME_PIECE_COLOR {
-    COLOR_NO_COLOR, COLOR_LIGHT, COLOR_DARK
+    COLOR_NO_COLOR, COLOR_LIGHT, COLOR_DARK, COLOR_ERROR
 };
 
 /**
@@ -58,7 +60,10 @@ enum GAME_STATE {
     /// Light colored player's turn.
             STATE_LIGHT_TURN,
     /// Dark colored player's turn.
-            STATE_DARK_TURN
+            STATE_DARK_TURN,
+            STATE_LIGHT_WON,
+            STATE_DARK_WON,
+            STATE_TIE
 };
 /**
  * @brief A structure that holds all information about an instance of the game.
@@ -107,6 +112,8 @@ int check_and_promote(struct GAME_INSTANCE *instance, int field);
  * @see GAME_INSTANCE
  */
 enum GAME_PIECE_COLOR _get_piece_color(struct GAME_INSTANCE *instance, int row, int col);
+
+bool is_game_end(struct GAME_INSTANCE *instance);
 
 // DEBUG ONLY FUNCTIONS
 void show_board(struct GAME_INSTANCE *instance);

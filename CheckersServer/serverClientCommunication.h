@@ -21,7 +21,7 @@ struct PARSED_MESSAGE_STRUCT {
     int param2;
 };
 
-enum SER_CLI_COM_RESULT ser_cli_com_recv_and_parse(struct ROOM *room, struct PLAYER *player);
+struct PARSED_MESSAGE_STRUCT ser_cli_com_recv_and_parse(struct PLAYER *player);
 
 enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player);
 

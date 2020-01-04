@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "game.h"
 
 void place_pieces(struct GAME_INSTANCE *instance) {
@@ -14,6 +15,63 @@ void place_pieces(struct GAME_INSTANCE *instance) {
             instance->board[row][col] = PIECE_LIGHT_MAN;
     }
     instance->game_state = STATE_LIGHT_TURN;
+}
+
+bool _can_move(struct GAME_INSTANCE *instance, int from_row, int from_col) {
+    enum GAME_PIECE_COLOR piece_color = _get_piece_color(instance, from_row, from_col);
+    enum GAME_PIECE_COLOR opponent_color = piece_color == COLOR_LIGHT ? COLOR_DARK : COLOR_LIGHT;
+    if (from_row % 2 == 0) {  // Even row
+        // One up left
+        if (_get_piece_color(instance, from_row + 1, from_col + 1) == COLOR_NO_COLOR) return true;
+        // One up right
+        if (_get_piece_color(instance, from_row + 1, from_col) == COLOR_NO_COLOR) return true;
+        // One down left
+        if (_get_piece_color(instance, from_row - 1, from_col + 1) == COLOR_NO_COLOR) return true;
+        // One down right
+        if (_get_piece_color(instance, from_row - 1, from_col) == COLOR_NO_COLOR) return true;
+        // Two up left
+        if (_get_piece_color(instance, from_row + 2, from_col + 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row + 1, from_col + 1) == opponent_color)
+            return true;
+        // Two up right
+        if (_get_piece_color(instance, from_row + 2, from_col - 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row + 1, from_col) == opponent_color)
+            return true;
+        // Two down left
+        if (_get_piece_color(instance, from_row - 2, from_col + 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row - 1, from_col + 1) == opponent_color)
+            return true;
+        // Two down right
+        if (_get_piece_color(instance, from_row - 2, from_col - 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row - 1, from_col) == opponent_color)
+            return true;
+    } else {  // Odd row
+        // One up left
+        if (_get_piece_color(instance, from_row + 1, from_col) == COLOR_NO_COLOR) return true;
+        // One up right
+        if (_get_piece_color(instance, from_row + 1, from_col - 1) == COLOR_NO_COLOR) return true;
+        // One down left
+        if (_get_piece_color(instance, from_row - 1, from_col) == COLOR_NO_COLOR) return true;
+        // One down right
+        if (_get_piece_color(instance, from_row - 1, from_col - 1) == COLOR_NO_COLOR) return true;
+        // Two up left
+        if (_get_piece_color(instance, from_row + 2, from_col + 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row + 1, from_col) == opponent_color)
+            return true;
+        // Two up right
+        if (_get_piece_color(instance, from_row + 2, from_col - 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row + 1, from_col - 1) == opponent_color)
+            return true;
+        // Two down left
+        if (_get_piece_color(instance, from_row - 2, from_col + 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row - 1, from_col) == opponent_color)
+            return true;
+        // Two down right
+        if (_get_piece_color(instance, from_row - 2, from_col - 1) == COLOR_NO_COLOR
+            && _get_piece_color(instance, from_row - 1, from_col - 1) == opponent_color)
+            return true;
+    }
+    return false;
 }
 
 struct MOVE_RESULT
@@ -38,7 +96,6 @@ move_piece(struct GAME_INSTANCE *instance, int from_field, int to_field, enum GA
     int to_row = to_field / GAME_BOARD_WIDTH;
     int to_col = to_field % GAME_BOARD_WIDTH;
 
-//    printf("fromRC %d,%d\n toRC %d,%d\n", from_row, from_col, to_row, to_col);
     int up_down = to_row > from_row ? 1 : -1;
     int num_of_fields = to_row > from_row ? to_row - from_row : from_row - to_row;
     int left_right;
@@ -88,9 +145,9 @@ move_piece(struct GAME_INSTANCE *instance, int from_field, int to_field, enum GA
         move_result.move_error = ERROR_ILLEGAL_MOVE;
     }
     // Check if the move can be done
-    if (to_row < 0 || to_row > GAME_BOARD_HEIGHT)
+    if (to_row < 0 || to_row >= GAME_BOARD_HEIGHT)
         move_result.move_error = ERROR_ILLEGAL_MOVE;
-    if (to_col < 0 || to_col > GAME_BOARD_WIDTH)
+    if (to_col < 0 || to_col >= GAME_BOARD_WIDTH)
         move_result.move_error = ERROR_ILLEGAL_MOVE;
     // Those errors are critical so return if there is one
     if (move_result.move_error != ERROR_NO_ERROR)
@@ -111,7 +168,8 @@ move_piece(struct GAME_INSTANCE *instance, int from_field, int to_field, enum GA
     if (num_of_fields == 2) { // Capture
         instance->board[through_row][through_col] = PIECE_NO_PIECE;
         move_result.captured_piece_field = GAME_BOARD_WIDTH * through_row + through_col;
-        move_result.end_tour = 0; // TODO: Only if still can move
+        // Don't end the turn if the piece can still move
+        if (_can_move(instance, to_row, to_col)) move_result.end_tour = 0;
     }
     return move_result;
 }
@@ -133,12 +191,59 @@ int check_and_promote(struct GAME_INSTANCE *instance, int field) {
 enum GAME_PIECE_COLOR _get_piece_color(struct GAME_INSTANCE *instance, int row, int col) {
     enum GAME_PIECE_COLOR color = COLOR_NO_COLOR;
     if ((row < 0 || row > GAME_BOARD_HEIGHT) || (col < 0 || col > GAME_BOARD_WIDTH))
-        color = COLOR_NO_COLOR;
+        color = COLOR_ERROR;
     else if (instance->board[row][col] > 0)
         color = COLOR_DARK;
     else if (instance->board[row][col] < 0)
         color = COLOR_LIGHT;
     return color;
+}
+
+bool is_game_end(struct GAME_INSTANCE *instance) {
+    // Calculate the number of pieces left for each player and if the pieces can move
+    int light_pieces = 0;
+    int dark_pieces = 0;
+    int light_pieces_that_can_move = 0;
+    int dark_pieces_that_can_move = 0;
+    for (int row = 0; row < GAME_BOARD_HEIGHT; ++row) {
+        for (int col = 0; col < GAME_BOARD_WIDTH; ++col) {
+            switch (_get_piece_color(instance, row, col)) {
+                case COLOR_LIGHT:
+                    light_pieces++;
+                    if (_can_move(instance, row, col)) light_pieces_that_can_move++;
+                    break;
+                case COLOR_DARK:
+                    dark_pieces++;
+                    if (_can_move(instance, row, col)) dark_pieces_that_can_move++;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    if (light_pieces == 0) {
+        instance->game_state = STATE_DARK_TURN;
+        return 1;
+    }
+    if (dark_pieces == 0) {
+        instance->game_state = STATE_LIGHT_WON;
+        return 1;
+    }
+
+    if (light_pieces_that_can_move == 0 && dark_pieces_that_can_move == 0) {
+        instance->game_state = STATE_TIE;
+        return 1;
+    } else {
+        if (light_pieces_that_can_move == 0) {
+            instance->game_state = STATE_DARK_WON;
+            return 1;
+        }
+        if (dark_pieces_that_can_move == 0) {
+            instance->game_state = STATE_LIGHT_WON;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void show_board(struct GAME_INSTANCE *instance) {
