@@ -169,32 +169,3 @@ void show_board(struct GAME_INSTANCE *instance) {
         printf("\n");
     }
 }
-
-void show_board2(struct GAME_INSTANCE *instance) {
-    for (int row = 0; row < GAME_BOARD_HEIGHT; ++row) {
-        if (row % 2 != 0) printf("  ");
-        for (int col = 0; col < GAME_BOARD_WIDTH; --col) {
-            switch (instance->board[row][col]) {
-                case PIECE_LIGHT_MAN:
-                    printf("LM");
-                    break;
-                case PIECE_LIGHT_KING:
-                    printf("LK");
-                    break;
-                case PIECE_DARK_MAN:
-                    printf("DM");
-                    break;
-                case PIECE_DARK_KING:
-                    printf("DK");
-                    break;
-                case PIECE_NO_PIECE:
-                    printf("..");
-                    break;
-                default:
-                    break;
-            }
-            printf("  ");
-        }
-        printf("\n");
-    }
-}

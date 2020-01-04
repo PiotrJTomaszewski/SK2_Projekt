@@ -55,7 +55,6 @@ enum GAME_ERROR {
  */
 enum GAME_STATE {
     STATE_NO_GAME,
-    STATE_NEW_GAME,
     /// Light colored player's turn.
             STATE_LIGHT_TURN,
     /// Dark colored player's turn.
@@ -111,8 +110,6 @@ enum GAME_PIECE_COLOR _get_piece_color(struct GAME_INSTANCE *instance, int row, 
 
 // DEBUG ONLY FUNCTIONS
 void show_board(struct GAME_INSTANCE *instance);
-
-void show_board2(struct GAME_INSTANCE *instance);
 
 
 #endif //CHECKERSSERVER_GAME_H

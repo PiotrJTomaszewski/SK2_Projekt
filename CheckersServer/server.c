@@ -45,7 +45,16 @@ void *_room_thread(void *room_thread_data_param) {
 
     // Create a room for them
     struct ROOM *room = room_create_new(players[0], players[1]);
-    if (room == NULL) goto TERMINATE; // Terminate thread if there was an error while allocating memory
+    if (room == NULL) { // Terminate thread if there was an error while allocating memory
+        // Inform players about the error
+        ser_cli_com_send_message(players[0], SCMSG_CRITICAL_ERROR, 0, 0);
+        ser_cli_com_send_message(players[1], SCMSG_CRITICAL_ERROR, 0, 0);
+        printf("Critical error. Game room thread terminating\n");
+        room_delete(room);
+        player_delete(players[0]);
+        player_delete(players[1]);
+        return 0;
+    }
 
     // Start a game and inform players about that fact
     server_game_start_game(room);
@@ -77,7 +86,6 @@ void *_room_thread(void *room_thread_data_param) {
             }
         }
     }
-    TERMINATE:
     printf("Game room thread terminating\n");
     room_delete(room);
     player_delete(players[0]);

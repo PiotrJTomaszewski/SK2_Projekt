@@ -68,20 +68,3 @@ void server_game_start_game(struct ROOM *room) {
     ser_cli_com_send_message(room->player_one, SCMSG_LIGHT_TURN, 0, 0);
     ser_cli_com_send_message(room->player_two, SCMSG_LIGHT_TURN, 0, 0);
 }
-
-//struct ROOM *server_game_join_room(struct PLAYER *player, struct PLAYERS_LIST *players_list) {
-//    pthread_mutex_lock(&players_list->players_list_lock); // TODO: Find a better lock for this job
-//    struct ROOM *room = players_list_get_free_room(players_list);
-//    if (room == NULL) {  // There is no free room
-//        // Create new room
-//        room = room_create_new();
-//        printf("New room created\n");
-//        ser_cli_com_send_message(player, SCMSG_WAITING_FOR_OPPONENT, 0, 0);
-//    }
-//    // Assign player to the room
-//    player_assign_room(player, room);
-//    pthread_mutex_unlock(&players_list->players_list_lock); // TODO: Find a better lock for this job
-//    if (room->number_of_players == 2)
-//        server_game_start_game(room);
-//    return room;
-//}
