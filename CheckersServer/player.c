@@ -14,10 +14,10 @@ struct PLAYER *player_create_new(int player_fd) {
 //            player->room = NULL;
             player->player_color = COLOR_NO_COLOR;
             player->buffer = buffer;
-            if (pthread_mutex_init(&player->fd_lock, NULL) != 0)
-            {
-                perror("Error init player fd mutex");
-            }
+//            if (pthread_mutex_init(&player->fd_lock, NULL) != 0)
+//            {
+//                perror("Error init player fd mutex");
+//            }
         } else {
             printf("Error while creating new player\n");
             return NULL;

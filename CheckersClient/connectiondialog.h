@@ -20,12 +20,6 @@ public:
 private slots:
     void on_connectButton_clicked();
 
-    void on_refreshButton_clicked();
-
-    void on_joinRoomButton_clicked();
-
-    void on_createRoomButton_clicked();
-
     void on_disconnectButton_clicked();
 
 public slots:
@@ -34,7 +28,6 @@ public slots:
 private:
     Ui::ConnectionDialog *ui;
     TcpClient *server_connection;
-//    std::vector<Room> *local_room_list;
 };
 
 #endif // CONNECTIONDIALOG_H

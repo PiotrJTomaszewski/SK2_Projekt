@@ -3,7 +3,6 @@
 #include "server.h"
 
 
-
 int main() {
     srand((unsigned) time(NULL));
     server_run(1234);

@@ -24,7 +24,6 @@ class Game : public QGraphicsView {
 public:
     explicit Game(QWidget *parent = nullptr);
     ~Game() override;
-    void startGame(GLOBAL::COLOR player_color);
 
 private:
     TcpClient *server_connection;
@@ -49,6 +48,9 @@ signals:
 public slots:
     void gamePieceMovedSlot(int from_field, int to_field);
     void gamePromotePieceSlot(int field);
+    void endGameSlot();
+    void startGameSlot(GLOBAL::COLOR player_color);
+
 };
 
 #endif // GAME_H

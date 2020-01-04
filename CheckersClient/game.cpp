@@ -14,14 +14,14 @@ Game::Game(QWidget *parent) : QGraphicsView(parent) {
         this->dark_pieces[i]  = new GamePiece(":/textures/dark_man.png", ":/textures/dark_king.png", GLOBAL::DARK);
         this->scene->addItem(dark_pieces[i]);
     }
-    this->player_color = GLOBAL::LIGHT; // TODO: Get that from server
     // Set scene bounding rectangle so it won't be resized automatically
     int width = board_pixmap.width();
     int height = board_pixmap.height();
     this->scene->setSceneRect(0, 0, width, height);
     this->server_connection = ServerConnectionObject::getServerConnection();
     // Connect signals from server
-    connect(this->server_connection, &TcpClient::startGameSignal, this, &Game::startGame);
+    connect(this->server_connection, &TcpClient::startGameSignal, this, &Game::startGameSlot);
+    connect(this->server_connection, &TcpClient::endGameSignal, this, &Game::endGameSlot);
     connect(this->server_connection, &TcpClient::gamePieceMovedSignal, this, &Game::gamePieceMovedSlot);
     connect(this->server_connection, &TcpClient::gamePromotePieceSignal, this, &Game::gamePromotePieceSlot);
 
@@ -36,7 +36,7 @@ Game::~Game() {
     delete this->scene;
 }
 
-void Game::startGame(GLOBAL::COLOR player_color) {
+void Game::startGameSlot(GLOBAL::COLOR player_color) {
     qInfo("Starting game");
     this->player_color = player_color;
     placePiecesAtStart();
@@ -59,19 +59,23 @@ void Game::startGame(GLOBAL::COLOR player_color) {
     }
 }
 
+void Game::endGameSlot() {
+    for (int i=0; i < ONE_COLOR_PIECES; ++i) {
+        this->light_pieces[i]->setVisible(false);
+        this->dark_pieces[i]->setVisible(false);
+    }
+}
+
 void Game::mousePressEvent(QMouseEvent *event) {
-//    qInfo() << event->type();
     pickUpPiece(event->x(), event->y());
 }
 
 void Game::mouseMoveEvent(QMouseEvent *event) {
-//    qInfo() << event->type();
     movePickedUpPiece(event->x(), event->y());
 }
 
 
 void Game::mouseReleaseEvent(QMouseEvent *event) {
-//    qInfo() << event->type();
     dropPickedUpPiece(event->x(), event->y());
 }
 
@@ -102,24 +106,6 @@ void Game::dropPickedUpPiece(int mouse_x, int mouse_y) {
         else {
             this->server_connection->movePiece(from_field, to_field);
             this->picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
-//            // Wait for the response from the server
-//            QTimer timer;
-//            timer.setSingleShot(true);
-//            QEventLoop loop;
-//            connect( this->server_connection, &TcpClient::gameErrorSignal, &loop, &QEventLoop::quit );
-//            connect( &timer, &QTimer::timeout, &loop, &QEventLoop::quit );
-//            timer.start(10000);
-//            loop.exec();
-//            if(timer.isActive()) {
-//                if (this->server_connection->getLastGameError() == GLOBAL::GAME_ERROR::NO_ERROR) {
-//                    picked_up_piece->setPosition(getFieldPosition(to_field), to_field);
-//                }
-//                else {
-//                    picked_up_piece->setPosition(getFieldPosition(from_field), from_field);
-//                }
-//            }
-//            else
-//                qDebug("timeout");
         }
         this->picked_up_piece->setZValue(10);
         this->picked_up_piece = nullptr;
@@ -151,7 +137,6 @@ QPointF Game::getFieldPosition(int field) {
 }
 
 int Game::getFieldNumber(int x_position , int y_position) {
-    // TODO: Change that offset
     y_position -= 2 * Y_OFFSET;
     x_position -= 2 * X_OFFSET;
     int row = y_position / FIELD_SIZE;

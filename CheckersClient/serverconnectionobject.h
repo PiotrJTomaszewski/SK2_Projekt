@@ -2,6 +2,9 @@
 #define SERVERCONNECTIONOBJECT_H
 #include "tcpClient.h"
 
+/**
+ * @brief A singleton class providing access to the server connection
+ */
 class ServerConnectionObject
 {
 public:

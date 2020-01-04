@@ -4,6 +4,9 @@
 #include <malloc.h>
 #include <stdbool.h>
 
+/**
+ * A structure representing a circular buffer.
+ */
 struct CIRC_BUFFER {
     size_t size;
     char *buffer;
@@ -12,6 +15,9 @@ struct CIRC_BUFFER {
     int to_read; // Number of bytes to read
 };
 
+/**
+ * A structure representing the result of read operation on a circular buffer.
+ */
 struct CIRC_BUFFER_RESULT {
     char byte;
     bool error;
@@ -31,9 +37,19 @@ struct CIRC_BUFFER *circ_buffer_create_new(size_t size);
 void circ_buffer_delete(struct CIRC_BUFFER *circ_buffer);
 
 
-
+/**
+ * Read the next byte from the circular buffer.
+ * @param circ_buffer
+ * @return
+ */
 struct CIRC_BUFFER_RESULT circ_buffer_read_byte(struct CIRC_BUFFER *circ_buffer);
 
+/**
+ * Write a byte to the circular buffer
+ * @param circ_buffer
+ * @param byte
+ * @return
+ */
 int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte);
 
 /**

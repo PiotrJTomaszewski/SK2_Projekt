@@ -3,14 +3,11 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <stdint.h>
 #include <pthread.h>
 #include <malloc.h>
 #include <sys/poll.h>
 #include <unistd.h>
-#include <tkPort.h>
 #include <stdlib.h>
-#include <time.h>
 #include <signal.h>
 #include "server.h"
 #include "room.h"
@@ -173,7 +170,6 @@ void server_run(int port) {
     signal(SIGINT, interrupt_signal_handler);
     // For some reason SIGINT doesn't work for stop button in CLion IDE but it reacts to SIGTERM
     signal(SIGTERM, interrupt_signal_handler);
-
 
     struct PLAYER *waiting_player = NULL;
     struct PLAYER *player = NULL;

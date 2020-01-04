@@ -33,7 +33,7 @@
      <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
-   <widget class="QTextBrowser" name="notInGameWarning">
+   <widget class="QTextBrowser" name="notConnectedWarning">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -50,8 +50,8 @@
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif';&quot;&gt;You aren't in a game room currently.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif';&quot;&gt;To join one select Game-&amp;gt;Game room&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif';&quot;&gt;You aren't connected to the server!&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif';&quot;&gt;Please go to Server-&amp;gt;Connect&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -72,7 +72,7 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>780</x>
       <y>70</y>
-      <width>121</width>
+      <width>221</width>
       <height>16</height>
      </rect>
     </property>
@@ -136,13 +136,13 @@ p, li { white-space: pre-wrap; }
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuConnect">
+   <widget class="QMenu" name="menuConnect_to_server">
     <property name="title">
-     <string>Game</string>
+     <string>Server</string>
     </property>
-    <addaction name="actionGameRoom"/>
+    <addaction name="actionConnect"/>
    </widget>
-   <addaction name="menuConnect"/>
+   <addaction name="menuConnect_to_server"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew_game">
@@ -150,9 +150,14 @@ p, li { white-space: pre-wrap; }
     <string>New game</string>
    </property>
   </action>
-  <action name="actionGameRoom">
+  <action name="actionGameServer">
    <property name="text">
     <string>Game room</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="text">
+    <string>Connect</string>
    </property>
   </action>
  </widget>

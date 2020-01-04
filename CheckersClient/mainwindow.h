@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void connectAndJoinRoom();
+    void connectToServerDialog();
 
 private:
     Ui::MainWindow *ui;

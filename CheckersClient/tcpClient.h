@@ -34,6 +34,7 @@ private slots:
 signals:
     void setConnectionStatusSignal(CONNECTION_STATUS new_status);
     void startGameSignal(GLOBAL::COLOR color);
+    void endGameSignal();
     void gameStatusSignal(GLOBAL::GAME_STATUS status);
     void gameErrorSignal(GLOBAL::GAME_ERROR error);
     void gamePieceMovedSignal(int from_field, int to_field);
