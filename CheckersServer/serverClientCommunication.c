@@ -11,7 +11,7 @@
 void ser_cli_com_init() {
 }
 
-enum SER_CLI_COM_RESULT ser_cli_com_get_and_parse(struct PLAYER *player) {
+enum SER_CLI_COM_RESULT ser_cli_com_recv_and_parse(struct ROOM *room, struct PLAYER *player) {
     enum SER_CLI_COM_RESULT recv_result;
     recv_result = ser_cli_com_receive(player);
     if (recv_result == SER_CLI_COM_SOCKET_CLOSED) {
@@ -21,7 +21,7 @@ enum SER_CLI_COM_RESULT ser_cli_com_get_and_parse(struct PLAYER *player) {
     struct PARSED_MESSAGE_STRUCT parsed_message = ser_cli_com_parse(player);
     // If there was message received
     if (parsed_message.result == SER_CLI_COM_NO_ERROR) {
-        ser_cli_com_take_action(player, &parsed_message);
+        ser_cli_com_take_action(room, player, &parsed_message);
     }
     return SER_CLI_COM_NO_ERROR;
 }
@@ -90,9 +90,9 @@ enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player) {
         }
         if (n < 0) { // Error
             //errno - EAGAIN lub EWOULDBLOCK
+            run_flag = false;
             if (errno != EAGAIN || errno != EWOULDBLOCK) {
                 result = SER_CLI_COM_OTHER_ERROR;
-                run_flag = false;
             }
         }
     }
@@ -128,11 +128,9 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse(struct PLAYER *player) {
     return result;
 }
 
-enum SER_CLI_COM_RESULT
-ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2) {
-    enum SER_CLI_COM_RESULT result;
-    result = SER_CLI_COM_NO_ERROR;
+int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2) {
     // Create a message
+    int error_occured = 0;
     char message[SCMSG_MESSAGE_LENGTH + 1];
     memset(message, 0, SCMSG_MESSAGE_LENGTH + 1);
     sprintf(message, "%02d %02d %02d\n", message_code, param1, param2);
@@ -146,22 +144,28 @@ ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE messa
     pthread_mutex_lock(&player->fd_lock);
     while (bytes_left_to_send > 0) {
         n = send(player->file_descriptor, buffer, bytes_left_to_send, 0);
-        bytes_left_to_send -= n;
-        bytes_sent += n;
-        if (bytes_left_to_send > 0) {
-            // Put the remaining bytes to the buffer
-            memset(buffer, 0, SCMSG_MESSAGE_LENGTH + 1);
-            strncpy(buffer, message + bytes_sent, bytes_left_to_send);
+        if (n > 0) {
+            bytes_left_to_send -= n;
+            bytes_sent += n;
+            if (bytes_left_to_send > 0) {
+                // Put the remaining bytes to the buffer
+                memset(buffer, 0, SCMSG_MESSAGE_LENGTH + 1);
+                strncpy(buffer, message + bytes_sent, bytes_left_to_send);
+            }
+        } else if (errno != EAGAIN || errno != EWOULDBLOCK) {
+            perror("Error while sending a message to player");
+            error_occured = 1;
+            break;
         }
     }
     pthread_mutex_unlock(&player->fd_lock);
-    return result;
+    return error_occured;
 }
 
-void ser_cli_com_take_action(struct PLAYER *player, struct PARSED_MESSAGE_STRUCT *parsed_message) {
+void ser_cli_com_take_action(struct ROOM *room, struct PLAYER *player, struct PARSED_MESSAGE_STRUCT *parsed_message) {
     switch (parsed_message->message_code) {
         case SCMSG_MOVE_PIECE:
-            server_game_move_piece(player, parsed_message->param1, parsed_message->param2);
+            server_game_move_piece(room, player, parsed_message->param1, parsed_message->param2);
             printf("Message received: Move piece from %d to %d\n", parsed_message->param1, parsed_message->param2);
             break;
         case SCMSG_GOODBYE:

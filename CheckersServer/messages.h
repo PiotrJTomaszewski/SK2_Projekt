@@ -21,8 +21,8 @@ enum SERVER_CLIENT_MESSAGE {
     // Messages that are send by the server
     SCMSG_WELCOME,
     SCMSG_WAITING_FOR_OPPONENT,
-    SCMSG_YOU_PLAY_LIGHT,
-    SCMSG_YOU_PLAY_DARK,
+    SCMSG_GAME_START_YOU_PLAY_LIGHT,
+    SCMSG_GAME_START_YOU_PLAY_DARK,
     SCMSG_GAME_ERROR, // error code
     SCMSG_LIGHT_TURN,
     SCMSG_DARK_TURN,
@@ -32,6 +32,7 @@ enum SERVER_CLIENT_MESSAGE {
     SCMSG_LIGHT_WON,
     SCMSG_DARK_WON,
     SCMSG_OPPONENT_LEFT,
+    SCMSG_CRITICAL_ERROR,
 
     // Messages that are send by a client
     SCMSG_MOVE_PIECE, // from, to

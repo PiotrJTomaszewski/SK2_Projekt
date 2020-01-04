@@ -15,21 +15,16 @@
 #include "server.h"
 #include "room.h"
 #include "messages.h"
-#include "playersList.h"
 #include "serverClientCommunication.h"
 #include "serverGame.h"
 
 #define BACKLOG_SIZE 1024
 
-pthread_mutex_t players_list_mutex;
 volatile int run_flag = true;
 
-
-struct PLAYERS_LIST players_list;
-
-
-struct CLIENT_THREAD_DATA {
-    int client_fd;
+struct ROOM_THREAD_DATA {
+    struct PLAYER *player_one;
+    struct PLAYER *player_two;
 };
 
 
@@ -39,61 +34,57 @@ void interrupt_signal_handler() {
 }
 
 
-void *_handle_new_connection(void *client_thread_data_param) {
+void *_room_thread(void *room_thread_data_param) {
     pthread_detach(pthread_self());
+    // Retrieve players data
+    struct ROOM_THREAD_DATA *room_thread_data = (struct ROOM_THREAD_DATA *) (room_thread_data_param);
+    struct PLAYER *players[2];
+    players[0] = room_thread_data->player_one;
+    players[1] = room_thread_data->player_two;
+    free(room_thread_data); // We won't need that anymore
 
-    // Retrieve client file descriptor
-    struct CLIENT_THREAD_DATA *player_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
-    int player_fd = player_data->client_fd;
+    // Create a room for them
+    struct ROOM *room = room_create_new(players[0], players[1]);
+    if (room == NULL) goto TERMINATE; // Terminate thread if there was an error while allocating memory
 
-    printf("New client connected\n");
-    printf("Client fd %d\n", player_fd);
+    // Start a game and inform players about that fact
+    server_game_start_game(room);
 
-    // Add the new player to the list of players
-    struct PLAYER *player = players_list_add_new(&players_list, player_fd);
-    // Send the welcome message to the player
-    ser_cli_com_send_message(player, SCMSG_WELCOME, 0, 0);
-    // Find a game room for the player or create a new one
-    server_game_join_room(player, &players_list);
-    free(player_data);
-    return 0;
-}
+    // Initialize polling
+    struct pollfd poll_clients[2];
+    poll_clients[0].fd = players[0]->file_descriptor;
+    poll_clients[0].events = POLLIN;
+    poll_clients[1].fd = players[1]->file_descriptor;
+    poll_clients[1].events = POLLIN;
 
-void *_handle_existing_connection(void *client_thread_data_param) {
-    pthread_detach(pthread_self());
-//    printf("DEBUG: Existing connection\n");
-
-    // Retrieve client file descriptor
-    struct CLIENT_THREAD_DATA *player_data = (struct CLIENT_THREAD_DATA *) (client_thread_data_param);
-    int player_fd = player_data->client_fd;
-    // Find the player using file descriptor
-    struct PLAYER *player = players_list_get_by_fd(&players_list, player_fd);
-    if (player == NULL) {
-        printf("Tried to handle dead client\n");
-        return 0;
-    }
-    // Handle messages sent by the player (if there were any)
-    enum SER_CLI_COM_RESULT result = ser_cli_com_get_and_parse(player);
-    if (result == SER_CLI_COM_SOCKET_CLOSED) {
-        printf("Player exited\n");
-        // Yhe player disconnected from server
-        struct PLAYER *other_player = room_get_other_player(player->room, player);
-        if (player->room != NULL) {
-            // If player is in game inform the other player about the disconnection
-            if (player->room->number_of_players == 2) {
-                if (other_player != NULL)
-                    ser_cli_com_send_message(other_player, SCMSG_OPPONENT_LEFT, 0, 0);
+    bool run_flag = true;
+    while (run_flag) { // Main loop
+        int poll_count = poll(poll_clients, 2, 1000);
+        if (poll_count < 0) {
+            perror("Poll error. Terminating thread");
+            run_flag = false;
+        } else {
+            for (unsigned i = 0; i < 2; ++i) {
+                if (poll_clients[i].revents & POLLIN) {
+                    enum SER_CLI_COM_RESULT result = ser_cli_com_recv_and_parse(room, players[i]);
+                    if (result == SER_CLI_COM_SOCKET_CLOSED) {
+                        // Player has left the server
+                        run_flag = false;
+                        // Try to inform the other player about the fact
+                        ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
+                    }
+                }
             }
-            // TODO: Change this
-            players_list_remove_player(&players_list, player);
-            if (other_player != NULL)
-                players_list_remove_player(&players_list, other_player);
         }
-
     }
-    free(player_data);
+    TERMINATE:
+    printf("Game room thread terminating\n");
+    room_delete(room);
+    player_delete(players[0]);
+    player_delete(players[1]);
     return 0;
 }
+
 
 /**
  * Setups the server.
@@ -152,47 +143,37 @@ void server_run(int port) {
     // For some reason SIGINT doesn't work for stop button in CLion IDE but it reacts to SIGTERM
     signal(SIGTERM, interrupt_signal_handler);
 
-    // Initialize players list
-    players_list_init(&players_list);
+
+    struct PLAYER *waiting_player = NULL;
+    struct PLAYER *player = NULL;
+    int client_fd;
 
     // Main server loop
     while (run_flag) {
-        // Get the file descriptors of all the clients connected to the server. Also add the server socket fd to this array.
-        unsigned number_of_clients = 0;
-        struct pollfd *clients = players_list_get_pollfds(&players_list, server_socket_fd, &number_of_clients);
-
-        int poll_count = poll(clients, number_of_clients, 1000);
-        if (poll_count < 0) {
-            perror("Poll error.");
-            run_flag = 0;
-        } else {
-            // Check if any client is ready
-            for (unsigned i = 0; i < number_of_clients; ++i) {
-                if (clients[i].revents & POLLIN) {
-                    pthread_t thread;
-                    struct CLIENT_THREAD_DATA *thread_data = malloc(sizeof(struct CLIENT_THREAD_DATA));
-                    if (clients[i].fd == server_socket_fd) {
-                        // Handle a new connection
-                        int client_fd;
-                        if ((client_fd = accept(server_socket_fd, NULL, NULL)) >= 0) {
-                            thread_data->client_fd = client_fd;
-                            pthread_create(&thread, NULL, _handle_new_connection, thread_data);
-                        } else { // accept
-                            perror("Error while accepting client connection!");
-                            printf("Moving on\n");
-                        }
-                    } else {
-                        // Handle existing connection
-                        thread_data->client_fd = clients[i].fd;
-                        pthread_create(&thread, NULL, _handle_existing_connection, thread_data);
-                    } // New or existing connection
-                } // Poll event check
-            } // Clients poll loop
-        } // poll_count check
-        free(clients);
+        client_fd = accept(server_socket_fd, NULL, NULL);
+        if (client_fd > 0) {
+            player = player_create_new(client_fd);
+            // Send the player a nice welcoming message
+            printf("Welcoming a new player %d\n", client_fd);
+            ser_cli_com_send_message(player, SCMSG_WELCOME, 0, 0);
+            // If there is no player waiting for a room, make this player wait
+            if (waiting_player == NULL) {
+                printf("He'll have to wait though\n");
+                waiting_player = player;
+                // Inform the player that he is waiting for an opponent
+                ser_cli_com_send_message(waiting_player, SCMSG_WAITING_FOR_OPPONENT, 0, 0);
+            } else { // If there is another player waiting for an opponent
+                printf("I've found a friend for him\n");
+                pthread_t room_thread;
+                struct ROOM_THREAD_DATA *room_thread_data = malloc(sizeof(struct ROOM_THREAD_DATA));
+                room_thread_data->player_one = waiting_player;
+                room_thread_data->player_two = player;
+                waiting_player = NULL;
+                pthread_create(&room_thread, NULL, _room_thread, room_thread_data);
+            } // If there is a player waiting
+        } // Accept check
     } // Main loop
     printf("Closing server\n");
     close(server_socket_fd);
-    // TODO: Close all file descriptors
 }
 

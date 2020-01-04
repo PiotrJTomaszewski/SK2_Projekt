@@ -6,7 +6,6 @@
 
 struct PLAYER {
     int file_descriptor;
-    struct ROOM *room;
     enum GAME_PIECE_COLOR player_color;
     struct CIRC_BUFFER *buffer;
     pthread_mutex_t fd_lock;
@@ -21,13 +20,17 @@ struct PLAYER {
  */
 struct PLAYER *player_create_new(int player_fd);
 
+/**
+ * Closes player's file descriptor and frees the allocated memory.
+ * @param player
+ */
 void player_delete(struct PLAYER *player);
 
 //void player_free_memory(struct PLAYER *player);
 
-void player_assign_room(struct PLAYER *player, struct ROOM *room);
+//void player_assign_room(struct PLAYER *player, struct ROOM *room);
 
-void player_leave_room(struct PLAYER *player);
+//void player_leave_room(struct PLAYER *player);
 
 
 /**
@@ -35,6 +38,6 @@ void player_leave_room(struct PLAYER *player);
  * @param player
  * @return
  */
-int player_is_in_free_room(struct PLAYER *player);
+//int player_is_in_free_room(struct PLAYER *player);
 
 #endif //CHECKERSSERVER_CLIENT_H

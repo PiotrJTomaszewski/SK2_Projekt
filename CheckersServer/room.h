@@ -14,7 +14,7 @@ struct ROOM {
 
 //void room_init(struct ROOM *room);
 
-struct ROOM *room_create_new();
+struct ROOM *room_create_new(struct PLAYER *player_one, struct PLAYER *player_two);
 
 void room_delete(struct ROOM *room);
 
