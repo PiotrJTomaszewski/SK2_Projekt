@@ -31,7 +31,6 @@ SOURCES += \
         game_piece.cpp \
         main.cpp \
         mainwindow.cpp \
-        room.cpp \
         serverconnectionobject.cpp \
         tcpClient.cpp
 
@@ -41,7 +40,6 @@ HEADERS += \
         game_piece.h \
         globals.h \
         mainwindow.h \
-        room.h \
         server_client_messages.h \
         serverconnectionobject.h \
         tcpClient.h
