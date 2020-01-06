@@ -165,7 +165,7 @@ void server_run(int port) {
         printf("An error occurred while setting up the server!\nThe program will now terminate.\n");
         exit(-1);
     }
-    printf("Server starting\n");
+    printf("Server starting on port %d\n", port);
 
     // Add a way to stop the server loop
     signal(SIGINT, interrupt_signal_handler);
