@@ -1,3 +1,10 @@
+/**
+* @file circularBuffer.h
+* @brief Implementation of a circular (ring) buffer
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_CIRCULARBUFFER_H
 #define CHECKERSSERVER_CIRCULARBUFFER_H
 

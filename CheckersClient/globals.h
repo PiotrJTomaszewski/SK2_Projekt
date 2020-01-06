@@ -2,7 +2,7 @@
 #define GLOBALS_H
 namespace GLOBAL {
 enum PIECE_TYPE {NO_PIECE, MAN, KING};
-enum COLOR {LIGHT, DARK};
+enum COLOR {NO_COLOR, LIGHT, DARK};
 enum GAME_STATUS {TURN_LIGHT, TURN_DARK, LIGHT_WON, DARK_WON, TIE, OPPONENT_LEFT};
 enum GAME_ERROR {
     // There was no error

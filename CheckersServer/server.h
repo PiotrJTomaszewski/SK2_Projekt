@@ -1,3 +1,10 @@
+/**
+* @file server.h
+* @brief Main server module.
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_SERVER_H
 #define CHECKERSSERVER_SERVER_H
 

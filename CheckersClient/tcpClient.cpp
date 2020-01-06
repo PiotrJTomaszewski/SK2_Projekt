@@ -31,7 +31,7 @@ void TcpClient::connectToServer(QString address, int port) {
 
 void TcpClient::disconnectFromServer() {
     sendMessage(SCMSG_GOODBYE);
-    this->tcp_socket->disconnectFromHost();
+    this->tcp_socket->close();
 }
 
 TcpClient::CONNECTION_STATUS TcpClient::getConnectionStatus() {
@@ -76,9 +76,7 @@ void TcpClient::sendMessage(SERVER_CLIENT_MESSAGE message_code, int param1, int 
 void TcpClient::readData() {
     // Get all available data from the server
     QByteArray available_data = tcp_socket->readAll();
-    qInfo() << this->receive_buffer->writeBytes(available_data);
-    qInfo() << "Data received!";
-    qInfo() << this->receive_buffer->getToRead();
+    this->receive_buffer->writeBytes(available_data);
     // While there are enough bytes in the buffer
     while (this->receive_buffer->getToRead() >= SCMSG_MESSAGE_LENGTH) {
         // Copy one message from buffer to the local one
@@ -95,43 +93,41 @@ void TcpClient::readData() {
         int tmp;
         int param1;
         int param2;
-        debugSignal(local_buf);
-        qInfo() << "Message received: " << local_buf;
+        QMessageBox msg_box;
         if (read_bytes >= SCMSG_MESSAGE_LENGTH) {
             sscanf(local_buf, "%02d %02d %02d\n", &tmp, &param1, &param2);
-            message_code = static_cast<SERVER_CLIENT_MESSAGE>(tmp);            switch(message_code) {
-            case SCMSG_WELCOME:
-                this->setConnectionStatus(CONNECTED);
-                debugSignal("Connected to server");
-                break;
+            message_code = static_cast<SERVER_CLIENT_MESSAGE>(tmp);
+            switch(message_code) {
             case SCMSG_WAITING_FOR_OPPONENT:
                 this->setConnectionStatus(IN_ROOM);
                 debugSignal("Waiting for the opponent");
                 break;
-            case SCMSG_GAME_START_YOU_PLAY_LIGHT:
-                this->setConnectionStatus(IN_GAME_LIGHT);
-                startGameSignal(GLOBAL::COLOR::LIGHT);
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
-                debugSignal("Game starting. You are playing light");
-                break;
-            case SCMSG_GAME_START_YOU_PLAY_DARK:
-                this->setConnectionStatus(IN_GAME_DARK);
-                startGameSignal(GLOBAL::COLOR::DARK);
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
-                debugSignal("Game starting. You are playing dark");
+            case SCMSG_GAME_START:
+                if (param1 == GLOBAL::COLOR::LIGHT) {
+                    this->setConnectionStatus(IN_GAME_LIGHT);
+                    startGameSignal(GLOBAL::COLOR::LIGHT);
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+                    debugSignal("Game starting. You are playing light");
+                } else {
+                    this->setConnectionStatus(IN_GAME_DARK);
+                    startGameSignal(GLOBAL::COLOR::DARK);
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
+                    debugSignal("Game starting. You are playing dark");
+                }
                 break;
             case SCMSG_GAME_ERROR:
                 this->lastGameError = static_cast<GLOBAL::GAME_ERROR>(param1);
                 this->gameErrorSignal(static_cast<GLOBAL::GAME_ERROR>(param1));
                 debugSignal(QStringLiteral("Game error %1").arg(param1));
                 break;
-            case SCMSG_LIGHT_TURN:
+            case SCMSG_NEW_TURN:
+                if (param1 == GLOBAL::COLOR::LIGHT) {
                 this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_LIGHT);
                 debugSignal("Light player turn");
-                break;
-            case SCMSG_DARK_TURN:
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_DARK);
-                debugSignal("Dark player turn");
+                } else {
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::TURN_DARK);
+                    debugSignal("Dark player turn");
+                }
                 break;
             case SCMSG_PIECE_MOVED:
                 this->gamePieceMovedSignal(param1, param2);
@@ -145,24 +141,30 @@ void TcpClient::readData() {
                 gamePromotePieceSignal(param1);
                 debugSignal(QStringLiteral("Promoting ").arg(param1));
                 break;
-            case SCMSG_GAME_END_LIGHT_WON:
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::LIGHT_WON);
-                this->endGameSignal();
-                debugSignal("Light player won!");
-                break;
-            case SCMSG_GAME_END_DARK_WON:
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::DARK_WON);
-                this->endGameSignal();
-                debugSignal("Dark player won!");
-                break;
-            case SCMSG_GAME_END_TIE:
-                this->gameStatusSignal(GLOBAL::GAME_STATUS::TIE);
+            case SCMSG_GAME_END:
+                switch(param1) {
+                case GLOBAL::COLOR::NO_COLOR:
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::TIE);
+                    debugSignal("A tie!");
+                    break;
+                case GLOBAL::COLOR::LIGHT:
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::LIGHT_WON);
+                    debugSignal("Light player won!");
+                    break;
+                case GLOBAL::COLOR::DARK:
+                    this->gameStatusSignal(GLOBAL::GAME_STATUS::DARK_WON);
+                    debugSignal("Dark player won!");
+                }
                 this->endGameSignal();
                 break;
             case SCMSG_OPPONENT_LEFT:
                 this->gameStatusSignal(GLOBAL::GAME_STATUS::OPPONENT_LEFT);
                 this->endGameSignal();
                 debugSignal("Your opponent left");
+                break;
+            case SCMSG_CRITICAL_ERROR:
+                msg_box.setText("A critical error has occurred on the server side!\nYou will most likely get disconnected now!");
+                msg_box.exec();
                 break;
             default:
                 debugSignal(QStringLiteral("Unknown command %1").arg(message_code));
@@ -173,7 +175,13 @@ void TcpClient::readData() {
 }
 
 void TcpClient::server_connected() {
+    debugSignal("Server connected");
     this->setConnectionStatus(CONNECTED);
+}
+
+void TcpClient::server_disconnected() {
+    debugSignal("Server disconnected");
+    this->setConnectionStatus(NOT_CONNECTED);
 }
 
 void TcpClient::displayError(QAbstractSocket::SocketError socketError) {
@@ -197,10 +205,6 @@ void TcpClient::displayError(QAbstractSocket::SocketError socketError) {
         break;
     }
 
-}
-
-void TcpClient::server_disconnected() {
-    this->setConnectionStatus(NOT_CONNECTED);
 }
 
 GLOBAL::GAME_ERROR TcpClient::getLastGameError() {

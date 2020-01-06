@@ -10,12 +10,12 @@ void _server_game_end_tour(struct ROOM *room) {
     struct GAME_INSTANCE *instance = room->game_instance;
     if (instance->game_state == STATE_DARK_TURN) {
         instance->game_state = STATE_LIGHT_TURN;
-        ser_cli_com_send_message(room->player_one, SCMSG_LIGHT_TURN, 0, 0);
-        ser_cli_com_send_message(room->player_two, SCMSG_LIGHT_TURN, 0, 0);
+        ser_cli_com_send_message(room->player_one, SCMSG_NEW_TURN, COLOR_LIGHT, 0);
+        ser_cli_com_send_message(room->player_two, SCMSG_NEW_TURN, COLOR_LIGHT, 0);
     } else if (instance->game_state == STATE_LIGHT_TURN) {
         instance->game_state = STATE_DARK_TURN;
-        ser_cli_com_send_message(room->player_one, SCMSG_DARK_TURN, 0, 0);
-        ser_cli_com_send_message(room->player_two, SCMSG_DARK_TURN, 0, 0);
+        ser_cli_com_send_message(room->player_one, SCMSG_NEW_TURN, COLOR_DARK, 0);
+        ser_cli_com_send_message(room->player_two, SCMSG_NEW_TURN, COLOR_DARK, 0);
     }
 }
 
@@ -56,32 +56,32 @@ void server_game_start_game(struct ROOM *room) {
     if (rand() % 2) {
         room->player_one->player_color = COLOR_LIGHT;
         room->player_two->player_color = COLOR_DARK;
-        ser_cli_com_send_message(room->player_one, SCMSG_GAME_START_YOU_PLAY_LIGHT, 0, 0);
-        ser_cli_com_send_message(room->player_two, SCMSG_GAME_START_YOU_PLAY_DARK, 0, 0);
+        ser_cli_com_send_message(room->player_one, SCMSG_GAME_START, COLOR_LIGHT, 0);
+        ser_cli_com_send_message(room->player_two, SCMSG_GAME_START, COLOR_DARK, 0);
     } else {
         room->player_one->player_color = COLOR_DARK;
         room->player_two->player_color = COLOR_LIGHT;
-        ser_cli_com_send_message(room->player_one, SCMSG_GAME_START_YOU_PLAY_DARK, 0, 0);
-        ser_cli_com_send_message(room->player_two, SCMSG_GAME_START_YOU_PLAY_LIGHT, 0, 0);
+        ser_cli_com_send_message(room->player_one, SCMSG_GAME_START, COLOR_DARK, 0);
+        ser_cli_com_send_message(room->player_two, SCMSG_GAME_START, COLOR_LIGHT, 0);
     }
-    ser_cli_com_send_message(room->player_one, SCMSG_LIGHT_TURN, 0, 0);
-    ser_cli_com_send_message(room->player_two, SCMSG_LIGHT_TURN, 0, 0);
+    ser_cli_com_send_message(room->player_one, SCMSG_NEW_TURN, COLOR_LIGHT, 0);
+    ser_cli_com_send_message(room->player_two, SCMSG_NEW_TURN, COLOR_LIGHT, 0);
 }
 
 bool server_game_check_if_the_game_has_ended(struct ROOM *room) {
     if (is_game_end(room->game_instance)) {
         switch (room->game_instance->game_state) {
             case STATE_LIGHT_WON:
-                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END_LIGHT_WON, 0, 0);
-                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END_LIGHT_WON, 0, 0);
+                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END, COLOR_LIGHT, 0);
+                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END, COLOR_LIGHT, 0);
                 break;
             case STATE_DARK_WON:
-                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END_DARK_WON, 0, 0);
-                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END_DARK_WON, 0, 0);
+                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END, COLOR_DARK, 0);
+                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END, COLOR_DARK, 0);
                 break;
             case STATE_TIE:
-                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END_TIE, 0, 0);
-                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END_TIE, 0, 0);
+                ser_cli_com_send_message(room->player_one, SCMSG_GAME_END, COLOR_NO_COLOR, 0);
+                ser_cli_com_send_message(room->player_two, SCMSG_GAME_END, COLOR_NO_COLOR, 0);
                 break;
             default:
                 break;

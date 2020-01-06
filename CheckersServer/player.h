@@ -1,6 +1,12 @@
+/**
+* @file player.h
+* @brief Player representation.
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_CLIENT_H
 #define CHECKERSSERVER_CLIENT_H
-#include <pthread.h>
 #include "circularBuffer.h"
 #include "room.h"
 
@@ -8,8 +14,19 @@
  * A structure representing a player
  */
 struct PLAYER {
+    /**
+     * Player's file descriptor
+     */
     int file_descriptor;
+
+    /**
+     * Player's color
+     */
     enum GAME_PIECE_COLOR player_color;
+
+    /**
+     * A buffer to store received bytes in
+     */
     struct CIRC_BUFFER *buffer;
 };
 

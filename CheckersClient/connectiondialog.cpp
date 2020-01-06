@@ -9,7 +9,7 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
     this->server_connection = ServerConnectionObject::getServerConnection();
     ui->setupUi(this);
     connect(server_connection, &TcpClient::setConnectionStatusSignal, this, &ConnectionDialog::showConnectionStatus);
-//    showConnectionStatus(server_connection->getConnectionStatus());
+    showConnectionStatus(this->server_connection->getConnectionStatus());
 }
 
 ConnectionDialog::~ConnectionDialog()
@@ -27,15 +27,13 @@ void ConnectionDialog::showConnectionStatus(TcpClient::CONNECTION_STATUS connect
         ui->connectButton->setEnabled(true);
         ui->disconnectButton->setEnabled(false);
         break;
-    case TcpClient::CONNECTED:
+    default:
         ui->connectionStatus->setStyleSheet("QLabel { color : green; }");
         ui->connectionStatus->setText("You are connected");
         ui->serverAddressText->setEnabled(false);
         ui->serverPortBox->setEnabled(false);
         ui->connectButton->setEnabled(false);
         ui->disconnectButton->setEnabled(true);
-        break;
-    default:
         break;
     }
 }

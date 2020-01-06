@@ -1,15 +1,32 @@
+/**
+* @file room.h
+* @brief Game room representation.
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_ROOM_H
 #define CHECKERSSERVER_ROOM_H
 
-#include <pthread.h>
 #include "game.h"
 
 /**
  * A structure representing a game room
  */
 struct ROOM {
+    /**
+     * One of the players in the game room
+     */
     struct PLAYER *player_one;
+
+    /**
+     * The other player in the game room
+     */
     struct PLAYER *player_two;
+
+    /**
+     * An instance of the game
+     */
     struct GAME_INSTANCE *game_instance;
 };
 

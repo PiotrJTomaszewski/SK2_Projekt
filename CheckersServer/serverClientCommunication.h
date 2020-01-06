@@ -1,8 +1,14 @@
+/**
+* @file serverClientCommunication.h
+* @brief Client server communication module.
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_SERVERCLIENTCOMMUNICATION_H
 #define CHECKERSSERVER_SERVERCLIENTCOMMUNICATION_H
 
 #include <stdbool.h>
-#include <pthread.h>
 #include "player.h"
 #include "messages.h"
 
@@ -51,5 +57,6 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player);
  * @return 0 on success, -1 on error
  */
 int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2);
+
 
 #endif //CHECKERSSERVER_SERVERCLIENTCOMMUNICATION_H

@@ -17,7 +17,7 @@
 
 #define BACKLOG_SIZE 1024
 
-volatile int run_flag = true;
+volatile int run_flag;
 
 struct ROOM_THREAD_DATA {
     struct PLAYER *player_one;
@@ -31,6 +31,9 @@ void interrupt_signal_handler() {
 }
 
 
+/**
+ * Function that handles a game in one game room
+ */
 void *_room_thread(void *room_thread_data_param) {
     pthread_detach(pthread_self());
     // Retrieve players data
@@ -63,12 +66,12 @@ void *_room_thread(void *room_thread_data_param) {
     poll_clients[1].fd = players[1]->file_descriptor;
     poll_clients[1].events = POLLIN;
 
-    bool run_flag = true;
-    while (run_flag) { // Main loop
+    bool thread_run_flag = true;
+    while (thread_run_flag) { // Main loop
         int poll_count = poll(poll_clients, 2, 1000);
         if (poll_count < 0) {
             perror("Poll error. Terminating thread");
-            run_flag = false;
+            thread_run_flag = false;
         } else {
             for (unsigned i = 0; i < 2; ++i) {
                 if (poll_clients[i].revents & POLLIN) {
@@ -82,16 +85,16 @@ void *_room_thread(void *room_thread_data_param) {
                             if (parsed_message.error == 0) { // A message was received
                                 switch (parsed_message.message_code) {
                                     case SCMSG_MOVE_PIECE:
-                                        server_game_move_piece(room, players[i], parsed_message.param1,
-                                                               parsed_message.param2);
+                                        server_game_move_piece(room, players[i],
+                                                parsed_message.param1, parsed_message.param2);
                                         if (server_game_check_if_the_game_has_ended(room)) { // The game has ended
-                                            run_flag = false;
+                                            thread_run_flag = false;
                                         }
                                         break;
                                     case SCMSG_GOODBYE:  // Player wants to disconnect. Inform his opponent
                                         printf("Player %d says goodbye\n", players[i]->file_descriptor);
                                         ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
-                                        run_flag = false;
+                                        thread_run_flag = false;
                                         break;
                                     default:
                                         break;
@@ -99,7 +102,7 @@ void *_room_thread(void *room_thread_data_param) {
                             } // Check if message was received
                         } while (parsed_message.error == 0);
                     } else if (result == SER_CLI_COM_SOCKET_CLOSED) {  // Player has left the server
-                        run_flag = false;
+                        thread_run_flag = false;
                         // Inform the other player about the fact
                         ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
                     }
@@ -176,6 +179,7 @@ void server_run(int port) {
     struct PLAYER *player = NULL;
     int client_fd;
 
+    run_flag = true;
     // Main server loop
     while (run_flag) {
         client_fd = accept(server_socket_fd, NULL, NULL);
@@ -183,7 +187,6 @@ void server_run(int port) {
             player = player_create_new(client_fd);
             // Send the player a nice welcoming message
             printf("Welcoming a new player %d\n", client_fd);
-            ser_cli_com_send_message(player, SCMSG_WELCOME, 0, 0);
             // If there is no player waiting for a room, make this player wait
             if (waiting_player == NULL) {
                 printf("He'll have to wait though\n");
@@ -191,7 +194,6 @@ void server_run(int port) {
                 // Inform the player that he is waiting for an opponent
                 ser_cli_com_send_message(waiting_player, SCMSG_WAITING_FOR_OPPONENT, 0, 0);
             } else { // If there is another player waiting for an opponent
-                printf("I've found a friend for him\n");
                 pthread_t room_thread;
                 struct ROOM_THREAD_DATA *room_thread_data = malloc(sizeof(struct ROOM_THREAD_DATA));
                 room_thread_data->player_one = waiting_player;

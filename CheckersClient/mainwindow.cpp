@@ -15,7 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(server_connection, &TcpClient::gameStatusSignal, this, &MainWindow::showGameStatus);
     connect(server_connection, &TcpClient::gameErrorSignal, this, &MainWindow::showGameError);
     connect(server_connection, &TcpClient::debugSignal, this, &MainWindow::debugSlot);
-    ui->debugBox->hide();
+    if (QCoreApplication::arguments().contains("debug")) ui->debugBox->show();
+    else ui->debugBox->hide();
     ui->errorMessage->hide();
 
 }

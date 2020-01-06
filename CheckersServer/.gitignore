@@ -111,3 +111,4 @@ modules.xml
 
 # Don't include documentation
 docs/*
+bin

@@ -1,10 +1,16 @@
+/**
+* @file serverGame.h
+* @brief A module joining game and server together.
+*
+* @author Piotr J. Tomaszewski
+*/
+
 #ifndef CHECKERSSERVER_SERVERGAME_H
 #define CHECKERSSERVER_SERVERGAME_H
 
 #include "player.h"
 #include "room.h"
 
-// True if a piece was moved
 /**
  * Tries to move the piece to the given field. Informs the players about results
  * @param room A game room in which the game takes place
