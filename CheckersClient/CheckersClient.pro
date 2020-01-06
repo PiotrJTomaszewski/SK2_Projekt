@@ -26,6 +26,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        circularbuffer.cpp \
         connectiondialog.cpp \
         game.cpp \
         game_piece.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
         tcpClient.cpp
 
 HEADERS += \
+        circularbuffer.h \
         connectiondialog.h \
         game.h \
         game_piece.h \

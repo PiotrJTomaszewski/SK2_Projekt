@@ -6,6 +6,7 @@
 
 
 TcpClient::TcpClient() : QObject(){
+    this->receive_buffer = new CircularBuffer(64);
     setConnectionStatus(NOT_CONNECTED);
     this->tcp_socket = new QTcpSocket();
     connect(this->tcp_socket, &QAbstractSocket::connected, this, &TcpClient::server_connected);
@@ -16,19 +17,22 @@ TcpClient::TcpClient() : QObject(){
 }
 
 TcpClient::~TcpClient() {
+    delete this->receive_buffer;
     delete this->tcp_socket;
 }
 
 void TcpClient::connectToServer(QString address, int port) {
+    // Clear the data receive buffer
+    this->receive_buffer->clear();
     this->address = address;
     this->port = port;
     this->tcp_socket->connectToHost(address, static_cast<quint16>(port));
 }
 
 void TcpClient::disconnectFromServer() {
+    sendMessage(SCMSG_GOODBYE);
     this->tcp_socket->disconnectFromHost();
 }
-
 
 TcpClient::CONNECTION_STATUS TcpClient::getConnectionStatus() {
     return this->connection_status;
@@ -40,26 +44,62 @@ void TcpClient::setConnectionStatus(CONNECTION_STATUS new_status) {
 }
 
 void TcpClient::movePiece(int from_field, int to_field) {
+    sendMessage(SCMSG_MOVE_PIECE, from_field, to_field);
+}
+
+void TcpClient::sendMessage(SERVER_CLIENT_MESSAGE message_code, int param1, int param2) {
     char message[SCMSG_MESSAGE_LENGTH+1];
-    sprintf(message, "%02d %02d %02d\n", static_cast<int>(SCMSG_MOVE_PIECE), from_field, to_field);
-    tcp_socket->write(message);
-    qInfo() << "Move piece from: " << from_field << " to: " << to_field;
+    // Create a buffer. It will hold the part of the message that still needs to be send
+    char message_buffer[SCMSG_MESSAGE_LENGTH+1];
+    sprintf(message, "%02d %02d %02d\n", message_code, param1, param2);
+    strcpy(message_buffer, message);
+    size_t bytes_left_to_send = SCMSG_MESSAGE_LENGTH;
+    int bytes_sent = 0;
+    long long n;
+    while (bytes_left_to_send > 0) {
+        n = tcp_socket->write(message_buffer);
+        if (n == -1) {
+            QMessageBox msg_box;
+            msg_box.setText("Error while sending data to the server!");
+            msg_box.exec();
+            break;
+        }
+        bytes_left_to_send -= static_cast<size_t>(n);
+        bytes_sent += n;
+        // If the whole message still wasn't sent to the server put the remaining part into the buffer
+        if (bytes_left_to_send > 0) {
+            strncpy(message_buffer, message + bytes_sent, bytes_left_to_send);
+        }
+    }
 }
 
 void TcpClient::readData() {
-    while (tcp_socket->canReadLine()) {
+    // Get all available data from the server
+    QByteArray available_data = tcp_socket->readAll();
+    qInfo() << this->receive_buffer->writeBytes(available_data);
+    qInfo() << "Data received!";
+    qInfo() << this->receive_buffer->getToRead();
+    // While there are enough bytes in the buffer
+    while (this->receive_buffer->getToRead() >= SCMSG_MESSAGE_LENGTH) {
+        // Copy one message from buffer to the local one
+        char local_buf[SCMSG_MESSAGE_LENGTH + 1];
+        bool message_read = false;
+        int read_bytes = 0;
+        while (!message_read) {
+            local_buf[read_bytes] = this->receive_buffer->readByte();
+            if (local_buf[read_bytes] == '\n') message_read = true;
+            ++read_bytes;
+        }
+        // Parse the message and act accordingly
         SERVER_CLIENT_MESSAGE message_code;
         int tmp;
         int param1;
         int param2;
-        QString data_line = tcp_socket->readLine();
-        debugSignal(data_line);
-        qInfo() << "Message received: " << data_line;
-        if (data_line.length() >= SCMSG_MESSAGE_LENGTH) {
-            QTextStream myteststream(&data_line);
-            myteststream >> tmp >> param1 >> param2;
-            message_code = static_cast<SERVER_CLIENT_MESSAGE>(tmp);
-            switch(message_code) {
+        debugSignal(local_buf);
+        qInfo() << "Message received: " << local_buf;
+        if (read_bytes >= SCMSG_MESSAGE_LENGTH) {
+            sscanf(local_buf, "%02d %02d %02d\n", &tmp, &param1, &param2);
+            message_code = static_cast<SERVER_CLIENT_MESSAGE>(tmp);            switch(message_code) {
             case SCMSG_WELCOME:
                 this->setConnectionStatus(CONNECTED);
                 debugSignal("Connected to server");

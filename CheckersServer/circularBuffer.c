@@ -1,4 +1,4 @@
-#include "circuralBuffer.h"
+#include "ringBuffer.h"
 
 struct CIRC_BUFFER *circ_buffer_create_new(size_t size) {
     struct CIRC_BUFFER *buffer = malloc(sizeof(struct CIRC_BUFFER));

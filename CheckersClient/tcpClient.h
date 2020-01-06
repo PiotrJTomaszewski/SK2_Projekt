@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QtNetwork>
 #include "globals.h"
+#include "circularbuffer.h"
+#include "server_client_messages.h"
 
 class TcpClient : public QObject{
     Q_OBJECT
@@ -24,6 +26,9 @@ private:
     int port;
     QTcpSocket *tcp_socket;
     GLOBAL::GAME_ERROR lastGameError;
+    CircularBuffer *receive_buffer;
+    // Sends a given message to the game server
+    void sendMessage(SERVER_CLIENT_MESSAGE message, int param1=0, int param2=0);
 
 private slots:
     void readData();
