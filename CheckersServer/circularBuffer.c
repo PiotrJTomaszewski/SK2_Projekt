@@ -1,4 +1,4 @@
-#include "ringBuffer.h"
+#include "circularBuffer.h"
 
 struct CIRC_BUFFER *circ_buffer_create_new(size_t size) {
     struct CIRC_BUFFER *buffer = malloc(sizeof(struct CIRC_BUFFER));
@@ -33,13 +33,14 @@ struct CIRC_BUFFER_RESULT circ_buffer_read_byte(struct CIRC_BUFFER *circ_buffer)
         circ_buffer->to_read--;
         result.error = false;
     } else {
-        result.byte = (char) 0;
+        result.byte = (char) -1;
         result.error = true;
     }
     return result;
 }
 
 int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte) {
+    // If there is a free space left in the buffer
     if (circ_buffer->to_read + 1 < (int) circ_buffer->size) {
         circ_buffer->buffer[circ_buffer->head] = byte;
         circ_buffer->head = (int) ((circ_buffer->head + 1) % circ_buffer->size);

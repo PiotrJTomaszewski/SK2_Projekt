@@ -4,7 +4,7 @@
 #include <errno.h>
 #include "serverClientCommunication.h"
 #include "serverGame.h"
-#include "circuralBuffer.h"
+#include "circularBuffer.h"
 #include "messages.h"
 #include "player.h"
 
@@ -24,9 +24,8 @@ enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player) {
             run_flag = false;
         }
         if (n < 0) { // Error
-            //errno - EAGAIN lub EWOULDBLOCK
             run_flag = false;
-            if (errno != EAGAIN || errno != EWOULDBLOCK) {
+            if (errno != EAGAIN || errno != EWOULDBLOCK) {  // Those two errors are expected and can be ignored
                 result = SER_CLI_COM_OTHER_ERROR;
             }
         }
@@ -40,7 +39,7 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player) {
     bool message_read = false;
     struct PARSED_MESSAGE_STRUCT result;
     result.error = 1;
-    // Check if there is anything in the buffer
+    // Check if there are enough bytes in the buffer
     if (player->buffer->to_read >= SCMSG_MESSAGE_LENGTH) {
         // Read data into local buffer
         while (!message_read) {
@@ -61,7 +60,7 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player) {
 
 int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE message_code, int param1, int param2) {
     // Create a message
-    int error_occured = 0;
+    int error_occurred = 0;
     char message[SCMSG_MESSAGE_LENGTH + 1];
     memset(message, 0, SCMSG_MESSAGE_LENGTH + 1);
     sprintf(message, "%02d %02d %02d\n", message_code, param1, param2);
@@ -79,14 +78,13 @@ int ser_cli_com_send_message(struct PLAYER *player, enum SERVER_CLIENT_MESSAGE m
             bytes_sent += n;
             if (bytes_left_to_send > 0) {
                 // Put the remaining bytes to the buffer
-                memset(buffer, 0, SCMSG_MESSAGE_LENGTH + 1);
                 strncpy(buffer, message + bytes_sent, bytes_left_to_send);
             }
-        } else if (errno != EAGAIN || errno != EWOULDBLOCK) {
-            perror("Error while sending a message to player");
-            error_occured = -1;
+        } else {
+            perror("Error while sending a message to the player");
+            error_occurred = -1;
             break;
         }
     }
-    return error_occured;
+    return error_occurred;
 }

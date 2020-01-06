@@ -30,15 +30,13 @@ void _server_game_check_promote_piece(struct ROOM *room, int field) {
 bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, int from_field, int to_field) {
     struct GAME_INSTANCE *instance = room->game_instance;
     // Move the piece
-//    pthread_mutex_lock(&room->room_lock);
     struct MOVE_RESULT move_result = move_piece(instance, from_field, to_field, current_player->player_color);
-//    pthread_mutex_unlock(&room->room_lock);
     if (move_result.end_tour == 1) { // If the tour should end
         _server_game_end_tour(room);
     }
     // Send the move error code to the player
     ser_cli_com_send_message(current_player, SCMSG_GAME_ERROR, move_result.move_error, 0);
-    show_board(instance);
+//    show_board(instance);
     if (move_result.move_error == ERROR_NO_ERROR) { // If there was no error, inform both players about the move
         ser_cli_com_send_message(room->player_one, SCMSG_PIECE_MOVED, from_field, to_field);
         ser_cli_com_send_message(room->player_two, SCMSG_PIECE_MOVED, from_field, to_field);
@@ -51,7 +49,7 @@ bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, in
     }
     return false;
 }
-// TODO: Error handling
+
 void server_game_start_game(struct ROOM *room) {
     printf("DEBUG: Game starting\n");
     place_pieces(room->game_instance);

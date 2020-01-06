@@ -89,6 +89,7 @@ void *_room_thread(void *room_thread_data_param) {
                                         }
                                         break;
                                     case SCMSG_GOODBYE:  // Player wants to disconnect. Inform his opponent
+                                        printf("Player %d says goodbye\n", players[i]->file_descriptor);
                                         ser_cli_com_send_message(players[1 - i], SCMSG_OPPONENT_LEFT, 0, 0);
                                         run_flag = false;
                                         break;

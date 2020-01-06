@@ -1,7 +1,7 @@
 #ifndef CHECKERSSERVER_CLIENT_H
 #define CHECKERSSERVER_CLIENT_H
 #include <pthread.h>
-#include "circuralBuffer.h"
+#include "circularBuffer.h"
 #include "room.h"
 
 /**
@@ -11,7 +11,6 @@ struct PLAYER {
     int file_descriptor;
     enum GAME_PIECE_COLOR player_color;
     struct CIRC_BUFFER *buffer;
-//    pthread_mutex_t fd_lock;
 };
 
 /**

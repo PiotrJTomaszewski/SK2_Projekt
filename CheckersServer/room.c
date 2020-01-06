@@ -10,13 +10,6 @@ struct ROOM *room_create_new(struct PLAYER *player_one, struct PLAYER *player_tw
             room->player_one = player_one;
             room->player_two = player_two;
             room->game_instance->game_state = STATE_NO_GAME;
-//            if (pthread_mutex_init(&room->room_lock, NULL) != 0)
-//            {
-//                free(room->game_instance);
-//                free(room);
-//                perror("Error init room mutex");
-//                return NULL;
-//            }
         } else {
             perror("Error while allocating memory for the room");
             free(room);

@@ -11,7 +11,6 @@ struct ROOM {
     struct PLAYER *player_one;
     struct PLAYER *player_two;
     struct GAME_INSTANCE *game_instance;
-//    pthread_mutex_t room_lock;
 };
 
 /**

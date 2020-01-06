@@ -1,5 +1,5 @@
-#ifndef CHECKERSSERVER_CIRCURALBUFFER_H
-#define CHECKERSSERVER_CIRCURALBUFFER_H
+#ifndef CHECKERSSERVER_CIRCULARBUFFER_H
+#define CHECKERSSERVER_CIRCULARBUFFER_H
 
 #include <malloc.h>
 #include <stdbool.h>
@@ -63,4 +63,4 @@ int circ_buffer_write_byte(struct CIRC_BUFFER *circ_buffer, char byte);
 int circ_buffer_write_bytes(struct CIRC_BUFFER *circ_buffer, char *bytes, unsigned number_of_bytes);
 
 
-#endif //CHECKERSSERVER_CIRCURALBUFFER_H
+#endif //CHECKERSSERVER_CIRCULARBUFFER_H
