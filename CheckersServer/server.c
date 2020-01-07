@@ -18,6 +18,8 @@
 #define BACKLOG_SIZE 1024
 
 volatile int run_flag;
+int server_socket_fd;
+
 
 struct ROOM_THREAD_DATA {
     struct PLAYER *player_one;
@@ -26,8 +28,12 @@ struct ROOM_THREAD_DATA {
 
 
 void interrupt_signal_handler() {
-    printf("CTRL+C interrupt\n");
     run_flag = false;
+    // Because accept is blocking the loop won't immediately stop
+    // but will still wait for a connection even after we set the run flag to 0.
+    // Closing the file descriptor will cause the accept function to fail and thus fix the issue.
+    close(server_socket_fd);
+    printf("Closing server\n");
 }
 
 
@@ -86,7 +92,7 @@ void *_room_thread(void *room_thread_data_param) {
                                 switch (parsed_message.message_code) {
                                     case SCMSG_MOVE_PIECE:
                                         server_game_move_piece(room, players[i],
-                                                parsed_message.param1, parsed_message.param2);
+                                                               parsed_message.param1, parsed_message.param2);
                                         if (server_game_check_if_the_game_has_ended(room)) { // The game has ended
                                             thread_run_flag = false;
                                         }
@@ -125,17 +131,16 @@ void *_room_thread(void *room_thread_data_param) {
  */
 int _setup_socket(int port) {
     bool error_occurred = false;
-    int socket_fd;
     int nFoo = 1;
     struct sockaddr_in server_address;
-    if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) >= 0) {
-        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &nFoo, sizeof(nFoo)) == 0) {
+    if ((server_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) >= 0) {
+        if (setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &nFoo, sizeof(nFoo)) == 0) {
             memset(&server_address, 0, sizeof(server_address));
             server_address.sin_family = AF_INET;
             server_address.sin_port = htons((uint16_t) port);
             server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-            if (bind(socket_fd, (struct sockaddr *) &server_address, sizeof(server_address)) == 0) {
-                if (listen(socket_fd, BACKLOG_SIZE) < 0) {
+            if (bind(server_socket_fd, (struct sockaddr *) &server_address, sizeof(server_address)) == 0) {
+                if (listen(server_socket_fd, BACKLOG_SIZE) < 0) {
                     perror("Server setup error while enabling accepting connections");
                     error_occurred = true;
                 }
@@ -154,7 +159,7 @@ int _setup_socket(int port) {
     if (error_occurred)
         return -1;
     else
-        return socket_fd;
+        return server_socket_fd;
 }
 
 /**
@@ -202,8 +207,12 @@ void server_run(int port) {
                 pthread_create(&room_thread, NULL, _room_thread, room_thread_data);
             } // If there is a player waiting
         } // Accept check
+        else {
+            // Ignore error if the run flag is set to 0.
+            // We are deliberately causing that error as a way to make the blocking accept function stop
+            if (run_flag)
+                perror("Server error while accepting connection");
+        }
     } // Main loop
-    printf("Closing server\n");
-    close(server_socket_fd);
 }
 
