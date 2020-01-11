@@ -30,8 +30,8 @@ struct ROOM_THREAD_DATA {
 void interrupt_signal_handler() {
     run_flag = false;
     // Because accept is blocking the loop won't immediately stop
-    // but will still wait for a connection even after we set the run flag to 0.
-    // Closing the file descriptor will cause the accept function to fail and thus fix the issue.
+    // but will still wait for a connection even after the run flag is set to 0.
+    // Closing the file descriptor will cause the accept function to fail and thus fix this issue.
     close(server_socket_fd);
     printf("Closing server\n");
 }
@@ -177,7 +177,7 @@ void server_run(int port) {
 
     // Add a way to stop the server loop
     signal(SIGINT, interrupt_signal_handler);
-    // For some reason SIGINT doesn't work for stop button in CLion IDE but it reacts to SIGTERM
+    // SIGINT doesn't work for stop button in CLion IDE because it sends SIGTERM
     signal(SIGTERM, interrupt_signal_handler);
 
     struct PLAYER *waiting_player = NULL;

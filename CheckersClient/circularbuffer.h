@@ -31,6 +31,7 @@ private:
     char *buffer;
     int head;
     int tail;
+    // Number of bytes that are currently available to read
     int to_read;
 };
 

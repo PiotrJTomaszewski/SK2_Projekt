@@ -30,11 +30,13 @@ enum SER_CLI_COM_RESULT ser_cli_com_receive(struct PLAYER *player) {
             }
         }
     }
+    free(local_buf);
     return result;
 }
 
 struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player) {
     char local_buf[SCMSG_MESSAGE_LENGTH + 1];
+    memset(local_buf, 0, SCMSG_MESSAGE_LENGTH + 1);
     int read_bytes = 0;
     bool message_read = false;
     struct PARSED_MESSAGE_STRUCT result;

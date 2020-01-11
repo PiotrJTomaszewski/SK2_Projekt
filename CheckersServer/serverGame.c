@@ -27,7 +27,7 @@ void _server_game_check_promote_piece(struct ROOM *room, int field) {
     }
 }
 
-bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, int from_field, int to_field) {
+void server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, int from_field, int to_field) {
     struct GAME_INSTANCE *instance = room->game_instance;
     // Move the piece
     struct MOVE_RESULT move_result = move_piece(instance, from_field, to_field, current_player->player_color);
@@ -45,9 +45,7 @@ bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, in
             ser_cli_com_send_message(room->player_two, SCMSG_PIECE_CAPTURED, move_result.captured_piece_field, 0);
         }
         _server_game_check_promote_piece(room, to_field);
-        return true;
     }
-    return false;
 }
 
 void server_game_start_game(struct ROOM *room) {

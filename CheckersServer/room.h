@@ -14,19 +14,8 @@
  * A structure representing a game room
  */
 struct ROOM {
-    /**
-     * One of the players in the game room
-     */
     struct PLAYER *player_one;
-
-    /**
-     * The other player in the game room
-     */
     struct PLAYER *player_two;
-
-    /**
-     * An instance of the game
-     */
     struct GAME_INSTANCE *game_instance;
 };
 

@@ -12,9 +12,6 @@
 #include "player.h"
 #include "messages.h"
 
-/**
- * A structure representing the result of communication
- */
 enum SER_CLI_COM_RESULT {
     SER_CLI_COM_NO_ERROR,
     SER_CLI_COM_SOCKET_CLOSED,

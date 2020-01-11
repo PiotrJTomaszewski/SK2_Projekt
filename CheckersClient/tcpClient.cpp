@@ -74,7 +74,7 @@ void TcpClient::sendMessage(SERVER_CLIENT_MESSAGE message_code, int param1, int 
 }
 
 void TcpClient::readData() {
-    // Get all available data from the server
+    // Get all available data from the server and put it into the buffer
     QByteArray available_data = tcp_socket->readAll();
     this->receive_buffer->writeBytes(available_data);
     // While there are enough bytes in the buffer

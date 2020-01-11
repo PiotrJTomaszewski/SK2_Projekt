@@ -65,6 +65,7 @@ enum GAME_STATE {
             STATE_DARK_WON,
             STATE_TIE
 };
+
 /**
  * @brief A structure that holds all information about an instance of the game.
  */
@@ -97,7 +98,7 @@ void place_pieces(struct GAME_INSTANCE *instance);
  * @param up_down Greater than 0 - piece moving up, less or equal 0 moving down.
  * @param left_right Greater than 0 - piece moving left, less or equal 0 moving right.
  * @param num_of_fields Number of fields that the piece is moving.
- * @return A structure // TODO: Fill this
+ * @return A structure containing the result
  * @see GAME_INSTANCE
  * @see GAME_ERROR
  */

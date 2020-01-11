@@ -17,9 +17,8 @@
  * @param current_player A player that sent the move command
  * @param from_field A field on which the piece stands currently
  * @param to_field A field to which the player wanted to move the piece
- * @return true on successful move, false otherwise
  */
-bool server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, int from_field, int to_field);
+void server_game_move_piece(struct ROOM *room, struct PLAYER *current_player, int from_field, int to_field);
 
 /**
  * Starts a new checkers game. Informs the players about the fact.

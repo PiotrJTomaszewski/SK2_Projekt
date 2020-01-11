@@ -11,12 +11,11 @@
 #define SCMSG_MESSAGE_LENGTH 9
 
 enum SERVER_CLIENT_MESSAGE {
-    // Messages that are send by the server
     // Parameters that should come with the messages are shown in comments
 
     // Messages that are send by server
     SCMSG_WAITING_FOR_OPPONENT,
-    SCMSG_GAME_START,  // param - player color
+    SCMSG_GAME_START,
     SCMSG_GAME_ERROR, // param - error code
     SCMSG_NEW_TURN,  // param - color
     SCMSG_PIECE_MOVED, // param - from, to
