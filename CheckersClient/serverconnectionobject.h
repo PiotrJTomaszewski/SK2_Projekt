@@ -3,7 +3,7 @@
 #include "tcpClient.h"
 
 /**
- * @brief A singleton class providing access to the server connection
+ * @brief A class providing access to the server connection
  */
 class ServerConnectionObject
 {
