@@ -50,7 +50,7 @@ struct PARSED_MESSAGE_STRUCT ser_cli_com_parse_next(struct PLAYER *player) {
             ++read_bytes;
         }
     }
-    if (read_bytes > 0) {  // If a message was read
+    if (message_read) {  // If a message was read
         // Parse data
         int tmp;
         sscanf(local_buf, "%02d %02d %02d\n", &tmp, &result.param1, &result.param2);
